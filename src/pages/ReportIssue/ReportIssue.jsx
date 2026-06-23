@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { analyzeCommunityIssue } from "../../services/gemini/geminiService";
 import { fileToBase64 } from "../../utils/fileToBase64";
+import { saveIssueReport } from "../../services/firebase/reportService";
 
 function ReportIssue() {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -33,9 +34,20 @@ const handleAnalyze = async () => {
             .replace(/```/g, "")
             .trim();
 
-        const parsedData = JSON.parse(cleanedResult);
+       const parsedData = JSON.parse(cleanedResult);
 
-           setAnalysis(parsedData);
+setAnalysis(parsedData);
+console.log("Before Firestore Save");
+
+const reportId = await saveIssueReport({
+    
+    ...parsedData,
+    imageName: selectedImage.name,
+    createdAt: new Date().toISOString(),
+});
+console.log("Saved Report ID:", reportId);
+
+console.log("Saved Report ID:", reportId);
 
     } catch (error) {
         console.error(error);

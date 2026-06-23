@@ -51,7 +51,15 @@ Return JSON only.
 
     return response.text;
   } catch (error) {
-    console.error(error);
-    return null;
-  }
+  console.error(error);
+
+  return JSON.stringify({
+    category: "Service Temporarily Unavailable",
+    severity: "Unknown",
+    confidence: 0,
+    risk: "Gemini API unavailable",
+    department: "Unknown",
+    priority: "Low"
+  });
+}
 };
