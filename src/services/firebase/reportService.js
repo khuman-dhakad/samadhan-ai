@@ -1,4 +1,9 @@
-import { collection, addDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+} from "firebase/firestore";
+
 import { db } from "./firebaseConfig";
 
 export const saveIssueReport = async (reportData) => {
@@ -17,5 +22,27 @@ export const saveIssueReport = async (reportData) => {
   } catch (error) {
     console.error("Firestore Error:", error);
     throw error;
+  }
+};
+
+export const getAllReports = async () => {
+  try {
+    const querySnapshot = await getDocs(
+      collection(db, "issueReports")
+    );
+
+    const reports = [];
+
+    querySnapshot.forEach((doc) => {
+      reports.push({
+        id: doc.id,
+        ...doc.data(),
+      });
+    });
+
+    return reports;
+  } catch (error) {
+    console.error("Fetch Reports Error:", error);
+    return [];
   }
 };

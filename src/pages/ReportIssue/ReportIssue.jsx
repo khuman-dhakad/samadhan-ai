@@ -2,6 +2,7 @@ import { useState } from "react";
 import { analyzeCommunityIssue } from "../../services/gemini/geminiService";
 import { fileToBase64 } from "../../utils/fileToBase64";
 import { saveIssueReport } from "../../services/firebase/reportService";
+import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard";
 
 function ReportIssue() {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -113,6 +114,7 @@ console.log("Saved Report ID:", reportId);
                     </div>
                 )}
             </div>
+            <ReportsDashboard />
         </div>
     );
 }
