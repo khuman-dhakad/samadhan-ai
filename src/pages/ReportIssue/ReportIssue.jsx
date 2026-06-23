@@ -7,6 +7,7 @@ import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard
 function ReportIssue() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [analysis, setAnalysis] = useState(null);
+    const [refreshDashboard, setRefreshDashboard] = useState(false);
 
 
     const handleImageChange = (event) => {
@@ -48,8 +49,7 @@ const reportId = await saveIssueReport({
 });
 console.log("Saved Report ID:", reportId);
 
-console.log("Saved Report ID:", reportId);
-
+setRefreshDashboard((prev) => !prev);
     } catch (error) {
         console.error(error);
         alert("Analysis Failed");
@@ -114,7 +114,7 @@ console.log("Saved Report ID:", reportId);
                     </div>
                 )}
             </div>
-            <ReportsDashboard />
+            <ReportsDashboard refresh={refreshDashboard} />
         </div>
     );
 }
