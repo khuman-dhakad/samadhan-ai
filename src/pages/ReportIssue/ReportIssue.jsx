@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { analyzeCommunityIssue } from "../../services/gemini/geminiService";
 import { fileToBase64 } from "../../utils/fileToBase64";
 import { saveIssueReport } from "../../services/firebase/reportService";
@@ -24,8 +24,7 @@ function ReportIssue() {
     };
 
     const handleGoogleLogin = async () => {
-        const loggedInUser =
-            await signInWithGoogle();
+        const loggedInUser = await signInWithGoogle();
 
         if (loggedInUser) {
             setUser(loggedInUser);
@@ -35,6 +34,11 @@ function ReportIssue() {
                 loggedInUser
             );
         }
+    };
+
+    const handleLogout = async () => {
+        await logoutUser();
+        setUser(null);
     };
 
     const handleAnalyze = async () => {
@@ -66,16 +70,29 @@ function ReportIssue() {
             setAnalysis(parsedData);
 
             console.log(
-                "Before Firestore Save"
+                "Current User:",
+                user
             );
 
             const reportId =
                 await saveIssueReport({
                     ...parsedData,
+
                     imageName:
                         selectedImage.name,
+
                     createdAt:
                         new Date().toISOString(),
+
+                    userId:
+                        user?.uid || "anonymous",
+
+                    userName:
+                        user?.displayName ||
+                        "Anonymous User",
+
+                    userEmail:
+                        user?.email || "",
                 });
 
             console.log(
@@ -98,7 +115,6 @@ function ReportIssue() {
                 Report Community Issue
             </h1>
 
-            {/* Google Login Section */}
             <div className="mb-6">
                 {!user ? (
                     <button
@@ -118,6 +134,13 @@ function ReportIssue() {
                             <strong>Email:</strong>{" "}
                             {user.email}
                         </p>
+
+                        <button
+                            onClick={handleLogout}
+                            className="mt-3 bg-red-600 px-4 py-2 rounded-lg"
+                        >
+                            Logout
+                        </button>
                     </div>
                 )}
             </div>
@@ -132,9 +155,7 @@ function ReportIssue() {
 
                 {selectedImage && (
                     <p className="mb-4 text-green-400">
-                        Selected:
-                        {" "}
-                        {selectedImage.name}
+                        Selected: {selectedImage.name}
                     </p>
                 )}
 
@@ -152,45 +173,32 @@ function ReportIssue() {
                         </h2>
 
                         <p>
-                            <strong>
-                                Category:
-                            </strong>{" "}
+                            <strong>Category:</strong>{" "}
                             {analysis.category}
                         </p>
 
                         <p>
-                            <strong>
-                                Severity:
-                            </strong>{" "}
+                            <strong>Severity:</strong>{" "}
                             {analysis.severity}
                         </p>
 
                         <p>
-                            <strong>
-                                Confidence:
-                            </strong>{" "}
-                            {analysis.confidence}
-                            %
+                            <strong>Confidence:</strong>{" "}
+                            {analysis.confidence}%
                         </p>
 
                         <p>
-                            <strong>
-                                Risk:
-                            </strong>{" "}
+                            <strong>Risk:</strong>{" "}
                             {analysis.risk}
                         </p>
 
                         <p>
-                            <strong>
-                                Department:
-                            </strong>{" "}
+                            <strong>Department:</strong>{" "}
                             {analysis.department}
                         </p>
 
                         <p>
-                            <strong>
-                                Priority:
-                            </strong>{" "}
+                            <strong>Priority:</strong>{" "}
                             {analysis.priority}
                         </p>
                     </div>
