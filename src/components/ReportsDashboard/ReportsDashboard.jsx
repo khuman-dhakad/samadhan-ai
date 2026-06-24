@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { getAllReports } from "../../services/firebase/reportService";
 
-function ReportsDashboard() {
+function ReportsDashboard({ refresh }) {
     const [reports, setReports] = useState([]);
 
     useEffect(() => {
         loadReports();
-    }, []);
+    }, [refresh]);
 
     const loadReports = async () => {
         const data = await getAllReports();
