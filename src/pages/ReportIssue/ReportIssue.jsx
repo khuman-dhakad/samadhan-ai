@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { analyzeCommunityIssue } from "../../services/gemini/geminiService";
 import { fileToBase64 } from "../../utils/fileToBase64";
 import { saveIssueReport } from "../../services/firebase/reportService";
 import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard";
 
+import {
+    signInWithGoogle,
+    logoutUser,
+} from "../../services/firebase/authService";
+
 function ReportIssue() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [analysis, setAnalysis] = useState(null);
+    const [user, setUser] = useState(null);
     const [refreshDashboard, setRefreshDashboard] = useState(false);
-
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -17,49 +22,105 @@ function ReportIssue() {
             setSelectedImage(file);
         }
     };
-const handleAnalyze = async () => {
-    if (!selectedImage) {
-        alert("Please select an image first");
-        return;
-    }
 
-    try {
-        const base64Image = await fileToBase64(selectedImage);
+    const handleGoogleLogin = async () => {
+        const loggedInUser =
+            await signInWithGoogle();
 
-        const result = await analyzeCommunityIssue(base64Image);
+        if (loggedInUser) {
+            setUser(loggedInUser);
 
-        console.log("RAW RESULT:");
-        console.log(result);
+            console.log(
+                "Logged In:",
+                loggedInUser
+            );
+        }
+    };
 
-        const cleanedResult = result
-            .replace(/```json/g, "")
-            .replace(/```/g, "")
-            .trim();
+    const handleAnalyze = async () => {
+        if (!selectedImage) {
+            alert("Please select an image first");
+            return;
+        }
 
-       const parsedData = JSON.parse(cleanedResult);
+        try {
+            const base64Image =
+                await fileToBase64(selectedImage);
 
-setAnalysis(parsedData);
-console.log("Before Firestore Save");
+            const result =
+                await analyzeCommunityIssue(
+                    base64Image
+                );
 
-const reportId = await saveIssueReport({
-    
-    ...parsedData,
-    imageName: selectedImage.name,
-    createdAt: new Date().toISOString(),
-});
-console.log("Saved Report ID:", reportId);
+            console.log("RAW RESULT:");
+            console.log(result);
 
-setRefreshDashboard((prev) => !prev);
-    } catch (error) {
-        console.error(error);
-        alert("Analysis Failed");
-    }
-};
+            const cleanedResult = result
+                .replace(/```json/g, "")
+                .replace(/```/g, "")
+                .trim();
+
+            const parsedData =
+                JSON.parse(cleanedResult);
+
+            setAnalysis(parsedData);
+
+            console.log(
+                "Before Firestore Save"
+            );
+
+            const reportId =
+                await saveIssueReport({
+                    ...parsedData,
+                    imageName:
+                        selectedImage.name,
+                    createdAt:
+                        new Date().toISOString(),
+                });
+
+            console.log(
+                "Saved Report ID:",
+                reportId
+            );
+
+            setRefreshDashboard(
+                (prev) => !prev
+            );
+        } catch (error) {
+            console.error(error);
+            alert("Analysis Failed");
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-950 text-white p-8">
             <h1 className="text-4xl font-bold mb-6">
                 Report Community Issue
             </h1>
+
+            {/* Google Login Section */}
+            <div className="mb-6">
+                {!user ? (
+                    <button
+                        onClick={handleGoogleLogin}
+                        className="bg-red-600 px-5 py-2 rounded-lg"
+                    >
+                        Sign In With Google
+                    </button>
+                ) : (
+                    <div className="border border-green-500 rounded-lg p-4">
+                        <p>
+                            <strong>Name:</strong>{" "}
+                            {user.displayName}
+                        </p>
+
+                        <p>
+                            <strong>Email:</strong>{" "}
+                            {user.email}
+                        </p>
+                    </div>
+                )}
+            </div>
 
             <div className="border border-gray-700 rounded-xl p-6">
                 <input
@@ -71,7 +132,9 @@ setRefreshDashboard((prev) => !prev);
 
                 {selectedImage && (
                     <p className="mb-4 text-green-400">
-                        Selected: {selectedImage.name}
+                        Selected:
+                        {" "}
+                        {selectedImage.name}
                     </p>
                 )}
 
@@ -89,32 +152,54 @@ setRefreshDashboard((prev) => !prev);
                         </h2>
 
                         <p>
-                            <strong>Category:</strong> {analysis.category}
+                            <strong>
+                                Category:
+                            </strong>{" "}
+                            {analysis.category}
                         </p>
 
                         <p>
-                            <strong>Severity:</strong> {analysis.severity}
+                            <strong>
+                                Severity:
+                            </strong>{" "}
+                            {analysis.severity}
                         </p>
 
                         <p>
-                            <strong>Confidence:</strong> {analysis.confidence}%
+                            <strong>
+                                Confidence:
+                            </strong>{" "}
+                            {analysis.confidence}
+                            %
                         </p>
 
                         <p>
-                            <strong>Risk:</strong> {analysis.risk}
+                            <strong>
+                                Risk:
+                            </strong>{" "}
+                            {analysis.risk}
                         </p>
 
                         <p>
-                            <strong>Department:</strong> {analysis.department}
+                            <strong>
+                                Department:
+                            </strong>{" "}
+                            {analysis.department}
                         </p>
 
                         <p>
-                            <strong>Priority:</strong> {analysis.priority}
+                            <strong>
+                                Priority:
+                            </strong>{" "}
+                            {analysis.priority}
                         </p>
                     </div>
                 )}
             </div>
-            <ReportsDashboard refresh={refreshDashboard} />
+
+            <ReportsDashboard
+                refresh={refreshDashboard}
+            />
         </div>
     );
 }
