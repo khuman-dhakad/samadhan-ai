@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { analyzeCommunityIssue } from "../../services/gemini/geminiService";
 import { fileToBase64 } from "../../utils/fileToBase64";
 import { saveIssueReport } from "../../services/firebase/reportService";
@@ -7,6 +7,7 @@ import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard
 import {
     signInWithGoogle,
     logoutUser,
+    listenForAuthChanges,
 } from "../../services/firebase/authService";
 
 function ReportIssue() {
@@ -14,6 +15,17 @@ function ReportIssue() {
     const [analysis, setAnalysis] = useState(null);
     const [user, setUser] = useState(null);
     const [refreshDashboard, setRefreshDashboard] = useState(false);
+
+    useEffect(() => {
+        const unsubscribe =
+            listenForAuthChanges(
+                (currentUser) => {
+                    setUser(currentUser);
+                }
+            );
+
+        return () => unsubscribe();
+    }, []);
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];

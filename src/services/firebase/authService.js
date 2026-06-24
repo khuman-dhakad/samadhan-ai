@@ -3,9 +3,8 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  onAuthStateChanged,
 } from "firebase/auth";
-
-import { db } from "./firebaseConfig";
 
 const auth = getAuth();
 
@@ -31,6 +30,15 @@ export const logoutUser = async () => {
   } catch (error) {
     console.error(error);
   }
+};
+
+export const listenForAuthChanges = (
+  callback
+) => {
+  return onAuthStateChanged(
+    auth,
+    callback
+  );
 };
 
 export { auth };
