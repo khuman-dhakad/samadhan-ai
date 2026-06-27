@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { getReportStatistics } from "../../services/firebase/reportService";
+import {
+    getReportStatistics,
+    getAllReports,
+} from "../../services/firebase/reportService";
 
 function AdminDashboard() {
     const [stats, setStats] = useState({
@@ -10,13 +13,21 @@ function AdminDashboard() {
         resolved: 0,
     });
 
+    const [reports, setReports] = useState([]);
+
     useEffect(() => {
         loadStatistics();
+        loadReports();
     }, []);
 
     const loadStatistics = async () => {
         const data = await getReportStatistics();
         setStats(data);
+    };
+
+    const loadReports = async () => {
+        const data = await getAllReports();
+        setReports(data);
     };
 
     return (
@@ -74,6 +85,46 @@ function AdminDashboard() {
                     <p className="text-3xl font-bold text-green-400">
                         {stats.resolved}
                     </p>
+                </div>
+            </div>
+            <div className="mt-8">
+                <h3 className="text-2xl font-bold mb-4">
+                    All Reports
+                </h3>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full border border-gray-700">
+                        <thead className="bg-slate-800">
+                            <tr>
+                                <th className="p-3 border">Category</th>
+                                <th className="p-3 border">User</th>
+                                <th className="p-3 border">Priority</th>
+                                <th className="p-3 border">Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {reports.map((report) => (
+                                <tr key={report.id}>
+                                    <td className="p-3 border">
+                                        {report.category}
+                                    </td>
+
+                                    <td className="p-3 border">
+                                        {report.userName}
+                                    </td>
+
+                                    <td className="p-3 border">
+                                        {report.priority}
+                                    </td>
+
+                                    <td className="p-3 border">
+                                        {report.status || "Reported"}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -7,6 +7,7 @@ import {
   orderBy,
   doc,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 import { db } from "./firebaseConfig";
@@ -155,5 +156,25 @@ export const getReportStatistics = async () => {
             inProgress: 0,
             resolved: 0,
         };
+    }
+};
+export const deleteReport = async (reportId) => {
+    try {
+        const reportRef = doc(
+            db,
+            "issueReports",
+            reportId
+        );
+
+        await deleteDoc(reportRef);
+
+        console.log("Report Deleted Successfully");
+    } catch (error) {
+        console.error(
+            "Delete Report Error:",
+            error
+        );
+
+        throw error;
     }
 };
