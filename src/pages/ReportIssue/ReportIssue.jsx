@@ -5,6 +5,7 @@ import { saveIssueReport } from "../../services/firebase/reportService";
 import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard";
 import MyReports from "../../components/MyReports/MyReports";
 import AdminDashboard from "../../components/AdminDashboard/AdminDashboard";
+import { uploadImage } from "../../services/cloudinary/cloudinaryService";
 
 import {
     signInWithGoogle,
@@ -80,7 +81,9 @@ function ReportIssue() {
 
             const parsedData =
                 JSON.parse(cleanedResult);
+            const imageUrl = await uploadImage(selectedImage);
 
+            console.log("Uploaded Image URL:", imageUrl);
             setAnalysis(parsedData);
 
             console.log(
@@ -92,8 +95,8 @@ function ReportIssue() {
                 await saveIssueReport({
                     ...parsedData,
 
-                    imageName:
-                        selectedImage.name,
+                    imageName: selectedImage.name,
+                    imageUrl,
 
                     createdAt:
                         new Date().toISOString(),
