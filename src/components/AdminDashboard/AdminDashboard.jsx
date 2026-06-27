@@ -17,6 +17,11 @@ function AdminDashboard() {
 
     const [reports, setReports] = useState([]);
 
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const [statusFilter, setStatusFilter] =
+        useState("All");
+
     useEffect(() => {
         loadStatistics();
         loadReports();
@@ -32,6 +37,32 @@ function AdminDashboard() {
         setReports(data);
     };
 
+    const filteredReports = reports.filter(
+    (report) => {
+        const matchesSearch =
+            report.category
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                ) ||
+            report.userName
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                );
+
+        const matchesStatus =
+            statusFilter === "All" ||
+            (report.status ||
+                "Reported") === statusFilter;
+
+        return (
+            matchesSearch &&
+            matchesStatus
+        );
+    }
+);
+
     const handleStatusChange = async (
         reportId,
         newStatus
@@ -46,16 +77,16 @@ function AdminDashboard() {
     };
 
     const handleDeleteReport = async (reportId) => {
-    const confirmDelete = window.confirm(
-        "Are you sure you want to delete this report?"
-    );
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this report?"
+        );
 
-    if (!confirmDelete) return;
+        if (!confirmDelete) return;
 
-    await deleteReport(reportId);
+        await deleteReport(reportId);
 
-    await loadReports();
-    await loadStatistics();
+        await loadReports();
+        await loadStatistics();
     };
 
     return (
@@ -119,6 +150,31 @@ function AdminDashboard() {
                 <h3 className="text-2xl font-bold mb-4">
                     All Reports
                 </h3>
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+    <input
+        type="text"
+        placeholder="Search by category or user..."
+        value={searchTerm}
+        onChange={(e) =>
+            setSearchTerm(e.target.value)
+        }
+        className="flex-1 bg-slate-800 border border-gray-600 rounded-lg p-3 text-white"
+    />
+
+    <select
+        value={statusFilter}
+        onChange={(e) =>
+            setStatusFilter(e.target.value)
+        }
+        className="bg-slate-800 border border-gray-600 rounded-lg p-3 text-white"
+    >
+        <option value="All">All Status</option>
+        <option value="Reported">Reported</option>
+        <option value="Under Review">Under Review</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Resolved">Resolved</option>
+    </select>
+</div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full border border-gray-700">
@@ -133,7 +189,7 @@ function AdminDashboard() {
                         </thead>
 
                         <tbody>
-                            {reports.map((report) => (
+                            {filteredReports.map((report) => (
                                 <tr key={report.id}>
                                     <td className="p-3 border">
                                         {report.category}
@@ -165,15 +221,15 @@ function AdminDashboard() {
                                         </select>
                                     </td>
                                     <td className="p-3 border text-center">
-    <button
-        onClick={() =>
-            handleDeleteReport(report.id)
-        }
-        className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded"
-    >
-        Delete
-    </button>
-</td>
+                                        <button
+                                            onClick={() =>
+                                                handleDeleteReport(report.id)
+                                            }
+                                            className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded"
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
