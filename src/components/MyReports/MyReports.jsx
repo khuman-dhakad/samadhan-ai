@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import { getAllReports } from "../../services/firebase/reportService";
+import { getUserReports } from "../../services/firebase/reportService";
 
-function ReportsDashboard({ refresh }) {
+function MyReports({ user, refresh }) {
     const [reports, setReports] = useState([]);
 
     useEffect(() => {
+        if (!user) return;
+
         loadReports();
-    }, [refresh]);
+    }, [user, refresh]);
 
     const loadReports = async () => {
-        const data = await getAllReports();
-        console.log("Reports:", data);
+        const data = await getUserReports(user.uid);
         setReports(data);
     };
 
@@ -36,18 +37,16 @@ function ReportsDashboard({ refresh }) {
     return (
         <div className="mt-8 border border-blue-500 rounded-xl p-6">
             <h2 className="text-2xl font-bold mb-4">
-                Submitted Reports
+                My Reports
             </h2>
 
             {reports.length === 0 ? (
-                <p className="text-gray-400">
-                    No reports found.
-                </p>
+                <p>No reports found.</p>
             ) : (
                 reports.map((report) => (
                     <div
                         key={report.id}
-                        className="border border-gray-700 rounded-lg p-4 mb-4"
+                        className="border border-gray-600 rounded-lg p-4 mb-4"
                     >
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="text-lg font-semibold">
@@ -84,4 +83,4 @@ function ReportsDashboard({ refresh }) {
     );
 }
 
-export default ReportsDashboard;
+export default MyReports;
