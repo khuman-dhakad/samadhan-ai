@@ -3,6 +3,7 @@ import {
     getReportStatistics,
     getAllReports,
     updateReportStatus,
+    deleteReport,
 } from "../../services/firebase/reportService";
 
 function AdminDashboard() {
@@ -42,6 +43,19 @@ function AdminDashboard() {
 
         await loadReports();
         await loadStatistics();
+    };
+
+    const handleDeleteReport = async (reportId) => {
+    const confirmDelete = window.confirm(
+        "Are you sure you want to delete this report?"
+    );
+
+    if (!confirmDelete) return;
+
+    await deleteReport(reportId);
+
+    await loadReports();
+    await loadStatistics();
     };
 
     return (
@@ -112,6 +126,7 @@ function AdminDashboard() {
                             <tr>
                                 <th className="p-3 border">Category</th>
                                 <th className="p-3 border">User</th>
+                                <th className="p-3 border">Action</th>
                                 <th className="p-3 border">Priority</th>
                                 <th className="p-3 border">Status</th>
                             </tr>
@@ -149,6 +164,16 @@ function AdminDashboard() {
                                             <option>Resolved</option>
                                         </select>
                                     </td>
+                                    <td className="p-3 border text-center">
+    <button
+        onClick={() =>
+            handleDeleteReport(report.id)
+        }
+        className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded"
+    >
+        Delete
+    </button>
+</td>
                                 </tr>
                             ))}
                         </tbody>
