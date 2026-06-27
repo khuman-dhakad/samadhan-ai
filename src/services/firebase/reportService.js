@@ -5,6 +5,8 @@ import {
   query,
   where,
   orderBy,
+  doc,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "./firebaseConfig";
@@ -85,5 +87,32 @@ export const getUserReports = async (userId) => {
     );
 
     return [];
+  }
+  
+};
+export const updateReportStatus = async (
+  reportId,
+  newStatus
+) => {
+  try {
+    const reportRef = doc(
+      db,
+      "issueReports",
+      reportId
+    );
+
+    await updateDoc(reportRef, {
+      status: newStatus,
+    });
+
+    console.log(
+      "Status Updated Successfully"
+    );
+  } catch (error) {
+    console.error(
+      "Update Status Error:",
+      error
+    );
+    throw error;
   }
 };
