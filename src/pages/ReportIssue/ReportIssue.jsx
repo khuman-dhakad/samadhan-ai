@@ -5,6 +5,7 @@ import { saveIssueReport } from "../../services/firebase/reportService";
 import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard";
 import MyReports from "../../components/MyReports/MyReports";
 import AdminDashboard from "../../components/AdminDashboard/AdminDashboard";
+import { uploadImage } from "../../services/cloudinary/cloudinaryService";
 
 import {
     signInWithGoogle,
@@ -19,12 +20,11 @@ function ReportIssue() {
     const [refreshDashboard, setRefreshDashboard] = useState(false);
 
     useEffect(() => {
-        const unsubscribe =
-            listenForAuthChanges(
-                (currentUser) => {
-                    setUser(currentUser);
-                }
-            );
+        const unsubscribe = listenForAuthChanges(
+            (currentUser) => {
+                setUser(currentUser);
+            }
+        );
 
         return () => unsubscribe();
     }, []);
@@ -42,11 +42,7 @@ function ReportIssue() {
 
         if (loggedInUser) {
             setUser(loggedInUser);
-
-            console.log(
-                "Logged In:",
-                loggedInUser
-            );
+            console.log("Logged In:", loggedInUser);
         }
     };
 
@@ -62,13 +58,22 @@ function ReportIssue() {
         }
 
         try {
-            const base64Image =
-                await fileToBase64(selectedImage);
+            // ============================
+            // STEP 1: Upload Image First
+            // ============================
+            const imageUrl = await uploadImage(selectedImage);
 
-            const result =
-                await analyzeCommunityIssue(
-                    base64Image
-                );
+            console.log("Uploaded Image URL:", imageUrl);
+
+            // ============================
+            // STEP 2: Convert Image
+            // ============================
+            const base64Image = await fileToBase64(selectedImage);
+
+            // ============================
+            // STEP 3: Analyze with Gemini
+            // ============================
+            const result = await analyzeCommunityIssue(base64Image);
 
             console.log("RAW RESULT:");
             console.log(result);
@@ -78,45 +83,36 @@ function ReportIssue() {
                 .replace(/```/g, "")
                 .trim();
 
-            const parsedData =
-                JSON.parse(cleanedResult);
+            const parsedData = JSON.parse(cleanedResult);
 
             setAnalysis(parsedData);
 
-            console.log(
-                "Current User:",
-                user
-            );
+            console.log("Current User:", user);
 
-            const reportId =
-                await saveIssueReport({
-                    ...parsedData,
+            // ============================
+            // STEP 4: Save Report
+            // ============================
+            const reportId = await saveIssueReport({
+                ...parsedData,
 
-                    imageName:
-                        selectedImage.name,
+                imageName: selectedImage.name,
+                imageUrl,
 
-                    createdAt:
-                        new Date().toISOString(),
+                createdAt: new Date().toISOString(),
 
-                    userId:
-                        user?.uid || "anonymous",
+                userId: user?.uid || "anonymous",
 
-                    userName:
-                        user?.displayName ||
-                        "Anonymous User",
+                userName:
+                    user?.displayName ||
+                    "Anonymous User",
 
-                    userEmail:
-                        user?.email || "",
-                });
+                userEmail:
+                    user?.email || "",
+            });
 
-            console.log(
-                "Saved Report ID:",
-                reportId
-            );
+            console.log("Saved Report ID:", reportId);
 
-            setRefreshDashboard(
-                (prev) => !prev
-            );
+            setRefreshDashboard((prev) => !prev);
         } catch (error) {
             console.error(error);
             alert("Analysis Failed");

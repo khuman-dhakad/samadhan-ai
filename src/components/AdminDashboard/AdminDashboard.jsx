@@ -24,6 +24,10 @@ function AdminDashboard() {
     const [statusFilter, setStatusFilter] =
         useState("All");
 
+    const [previewImage, setPreviewImage] = useState(null);
+
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
 
     useEffect(() => {
         loadStatistics();
@@ -119,59 +123,46 @@ function AdminDashboard() {
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="bg-slate-800 rounded-lg p-4 text-center">
-                    <h3 className="text-lg font-semibold">
-                        Total
-                    </h3>
-
+                    <h3 className="text-lg font-semibold">Total</h3>
                     <p className="text-3xl font-bold text-blue-400">
                         {stats.total}
                     </p>
                 </div>
 
                 <div className="bg-slate-800 rounded-lg p-4 text-center">
-                    <h3 className="text-lg font-semibold">
-                        Reported
-                    </h3>
-
+                    <h3 className="text-lg font-semibold">Reported</h3>
                     <p className="text-3xl font-bold text-yellow-400">
                         {stats.reported}
                     </p>
                 </div>
 
                 <div className="bg-slate-800 rounded-lg p-4 text-center">
-                    <h3 className="text-lg font-semibold">
-                        Under Review
-                    </h3>
-
+                    <h3 className="text-lg font-semibold">Under Review</h3>
                     <p className="text-3xl font-bold text-orange-400">
                         {stats.underReview}
                     </p>
                 </div>
 
                 <div className="bg-slate-800 rounded-lg p-4 text-center">
-                    <h3 className="text-lg font-semibold">
-                        In Progress
-                    </h3>
-
+                    <h3 className="text-lg font-semibold">In Progress</h3>
                     <p className="text-3xl font-bold text-cyan-400">
                         {stats.inProgress}
                     </p>
                 </div>
 
                 <div className="bg-slate-800 rounded-lg p-4 text-center">
-                    <h3 className="text-lg font-semibold">
-                        Resolved
-                    </h3>
-
+                    <h3 className="text-lg font-semibold">Resolved</h3>
                     <p className="text-3xl font-bold text-green-400">
                         {stats.resolved}
                     </p>
                 </div>
             </div>
+
             <div className="mt-8">
                 <h3 className="text-2xl font-bold mb-4">
                     All Reports
                 </h3>
+
                 <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <input
                         type="text"
@@ -192,9 +183,15 @@ function AdminDashboard() {
                     >
                         <option value="All">All Status</option>
                         <option value="Reported">Reported</option>
-                        <option value="Under Review">Under Review</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Resolved">Resolved</option>
+                        <option value="Under Review">
+                            Under Review
+                        </option>
+                        <option value="In Progress">
+                            In Progress
+                        </option>
+                        <option value="Resolved">
+                            Resolved
+                        </option>
                     </select>
                 </div>
 
@@ -202,17 +199,34 @@ function AdminDashboard() {
                     <table className="w-full border border-gray-700">
                         <thead className="bg-slate-800">
                             <tr>
+                                <th className="p-3 border">Image</th>
                                 <th className="p-3 border">Category</th>
                                 <th className="p-3 border">User</th>
-                                <th className="p-3 border">Action</th>
                                 <th className="p-3 border">Priority</th>
                                 <th className="p-3 border">Status</th>
+                                <th className="p-3 border">Action</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             {filteredReports.map((report) => (
                                 <tr key={report.id}>
+                                    <td className="p-3 border text-center">
+                                        {report.imageUrl ? (
+                                            <img
+                                                src={report.imageUrl}
+                                                alt={report.category}
+                                                className="w-16 h-16 object-cover rounded mx-auto cursor-pointer hover:scale-110 transition"
+                                                onClick={() => {
+                                                    setPreviewImage(report.imageUrl);
+                                                    setIsPreviewOpen(true);
+                                                }}
+                                            />
+                                        ) : (
+                                            "No Image"
+                                        )}
+                                    </td>
+
                                     <td className="p-3 border">
                                         {report.category}
                                     </td>
@@ -227,7 +241,10 @@ function AdminDashboard() {
 
                                     <td className="p-3 border">
                                         <select
-                                            value={report.status || "Reported"}
+                                            value={
+                                                report.status ||
+                                                "Reported"
+                                            }
                                             onChange={(e) =>
                                                 handleStatusChange(
                                                     report.id,
@@ -236,16 +253,27 @@ function AdminDashboard() {
                                             }
                                             className="bg-slate-800 p-2 rounded text-white"
                                         >
-                                            <option>Reported</option>
-                                            <option>Under Review</option>
-                                            <option>In Progress</option>
-                                            <option>Resolved</option>
+                                            <option>
+                                                Reported
+                                            </option>
+                                            <option>
+                                                Under Review
+                                            </option>
+                                            <option>
+                                                In Progress
+                                            </option>
+                                            <option>
+                                                Resolved
+                                            </option>
                                         </select>
                                     </td>
+
                                     <td className="p-3 border text-center">
                                         <button
                                             onClick={() =>
-                                                handleDeleteReport(report.id)
+                                                handleDeleteReport(
+                                                    report.id
+                                                )
                                             }
                                             className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded"
                                         >
@@ -257,7 +285,33 @@ function AdminDashboard() {
                         </tbody>
                     </table>
                 </div>
+
             </div>
+
+            {isPreviewOpen && (
+                <div
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                    onClick={() => setIsPreviewOpen(false)}
+                >
+                    <div
+                        className="relative max-w-5xl max-h-[90vh] p-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                            onClick={() => setIsPreviewOpen(false)}
+                        >
+                            ✕
+                        </button>
+
+                        <img
+                            src={previewImage}
+                            alt="Report Preview"
+                            className="max-w-full max-h-[80vh] rounded-lg"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
