@@ -49,6 +49,14 @@ function ReportsDashboard({ refresh }) {
                         key={report.id}
                         className="border border-gray-700 rounded-lg p-4 mb-4"
                     >
+                        {report.imageUrl && (
+                            <img
+                                src={report.imageUrl}
+                                alt={report.category}
+                                className="w-full h-56 object-cover rounded-lg mb-4"
+                            />
+                        )}
+
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="text-lg font-semibold">
                                 {report.category}
