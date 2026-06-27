@@ -6,6 +6,7 @@ import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard
 import MyReports from "../../components/MyReports/MyReports";
 import AdminDashboard from "../../components/AdminDashboard/AdminDashboard";
 import { uploadImage } from "../../services/cloudinary/cloudinaryService";
+import MapView from "../../components/MapView/MapView";
 
 import {
     signInWithGoogle,
@@ -223,6 +224,7 @@ function ReportIssue() {
             />
 
             <AdminDashboard />
+            <MapView />
         </div>
     );
 }
