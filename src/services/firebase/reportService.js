@@ -116,3 +116,44 @@ export const updateReportStatus = async (
     throw error;
   }
 };
+export const getReportStatistics = async () => {
+    try {
+        const reports = await getAllReports();
+
+        return {
+            total: reports.length,
+            reported: reports.filter(
+                (report) =>
+                    (report.status || "Reported") === "Reported"
+            ).length,
+
+            underReview: reports.filter(
+                (report) =>
+                    report.status === "Under Review"
+            ).length,
+
+            inProgress: reports.filter(
+                (report) =>
+                    report.status === "In Progress"
+            ).length,
+
+            resolved: reports.filter(
+                (report) =>
+                    report.status === "Resolved"
+            ).length,
+        };
+    } catch (error) {
+        console.error(
+            "Statistics Error:",
+            error
+        );
+
+        return {
+            total: 0,
+            reported: 0,
+            underReview: 0,
+            inProgress: 0,
+            resolved: 0,
+        };
+    }
+};
