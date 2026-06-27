@@ -3,6 +3,7 @@ import { analyzeCommunityIssue } from "../../services/gemini/geminiService";
 import { fileToBase64 } from "../../utils/fileToBase64";
 import { saveIssueReport } from "../../services/firebase/reportService";
 import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard";
+import MyReports from "../../components/MyReports/MyReports";
 
 import {
     signInWithGoogle,
@@ -220,6 +221,10 @@ function ReportIssue() {
             <ReportsDashboard
                 refresh={refreshDashboard}
             />
+            {user && <MyReports
+                user={user}
+                refresh={refreshDashboard}
+            />}
         </div>
     );
 }
