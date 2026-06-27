@@ -24,6 +24,10 @@ function AdminDashboard() {
     const [statusFilter, setStatusFilter] =
         useState("All");
 
+    const [previewImage, setPreviewImage] = useState(null);
+
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
 
     useEffect(() => {
         loadStatistics();
@@ -212,7 +216,11 @@ function AdminDashboard() {
                                             <img
                                                 src={report.imageUrl}
                                                 alt={report.category}
-                                                className="w-16 h-16 object-cover rounded mx-auto"
+                                                className="w-16 h-16 object-cover rounded mx-auto cursor-pointer hover:scale-110 transition"
+                                                onClick={() => {
+                                                    setPreviewImage(report.imageUrl);
+                                                    setIsPreviewOpen(true);
+                                                }}
                                             />
                                         ) : (
                                             "No Image"
@@ -277,9 +285,35 @@ function AdminDashboard() {
                         </tbody>
                     </table>
                 </div>
+
             </div>
+
+            {isPreviewOpen && (
+                <div
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+                    onClick={() => setIsPreviewOpen(false)}
+                >
+                    <div
+                        className="relative max-w-5xl max-h-[90vh] p-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                            onClick={() => setIsPreviewOpen(false)}
+                        >
+                            ✕
+                        </button>
+
+                        <img
+                            src={previewImage}
+                            alt="Report Preview"
+                            className="max-w-full max-h-[80vh] rounded-lg"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
-    }
+}
 
 export default AdminDashboard;
