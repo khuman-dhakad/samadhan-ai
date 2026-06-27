@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
     getReportStatistics,
     getAllReports,
+    updateReportStatus,
 } from "../../services/firebase/reportService";
 
 function AdminDashboard() {
@@ -28,6 +29,19 @@ function AdminDashboard() {
     const loadReports = async () => {
         const data = await getAllReports();
         setReports(data);
+    };
+
+    const handleStatusChange = async (
+        reportId,
+        newStatus
+    ) => {
+        await updateReportStatus(
+            reportId,
+            newStatus
+        );
+
+        await loadReports();
+        await loadStatistics();
     };
 
     return (
@@ -119,7 +133,21 @@ function AdminDashboard() {
                                     </td>
 
                                     <td className="p-3 border">
-                                        {report.status || "Reported"}
+                                        <select
+                                            value={report.status || "Reported"}
+                                            onChange={(e) =>
+                                                handleStatusChange(
+                                                    report.id,
+                                                    e.target.value
+                                                )
+                                            }
+                                            className="bg-slate-800 p-2 rounded text-white"
+                                        >
+                                            <option>Reported</option>
+                                            <option>Under Review</option>
+                                            <option>In Progress</option>
+                                            <option>Resolved</option>
+                                        </select>
                                     </td>
                                 </tr>
                             ))}
