@@ -4,6 +4,7 @@ import { fileToBase64 } from "../../utils/fileToBase64";
 import { saveIssueReport } from "../../services/firebase/reportService";
 import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard";
 import MyReports from "../../components/MyReports/MyReports";
+import AdminDashboard from "../../components/AdminDashboard/AdminDashboard";
 
 import {
     signInWithGoogle,
@@ -218,13 +219,14 @@ function ReportIssue() {
                 )}
             </div>
 
-            <ReportsDashboard
-                refresh={refreshDashboard}
-            />
-            {user && <MyReports
+            <ReportsDashboard refresh={refreshDashboard} />
+
+            <MyReports
                 user={user}
                 refresh={refreshDashboard}
-            />}
+            />
+
+            <AdminDashboard />
         </div>
     );
 }
