@@ -16,6 +16,7 @@ import {
 
 function ReportIssue() {
     const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedLocation, setSelectedLocation] = useState(null);
     const [analysis, setAnalysis] = useState(null);
     const [user, setUser] = useState(null);
     const [refreshDashboard, setRefreshDashboard] = useState(false);
@@ -224,7 +225,10 @@ function ReportIssue() {
             />
 
             <AdminDashboard />
-            <MapView />
+            <MapView
+                selectedLocation={selectedLocation}
+                setSelectedLocation={setSelectedLocation}
+            />
         </div>
     );
 }
