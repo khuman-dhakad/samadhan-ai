@@ -17,10 +17,13 @@ function AdminDashboard() {
 
     const [reports, setReports] = useState([]);
 
+    const [isAdmin, setIsAdmin] = useState(false);
+
     const [searchTerm, setSearchTerm] = useState("");
 
     const [statusFilter, setStatusFilter] =
         useState("All");
+
 
     useEffect(() => {
         loadStatistics();
@@ -38,30 +41,30 @@ function AdminDashboard() {
     };
 
     const filteredReports = reports.filter(
-    (report) => {
-        const matchesSearch =
-            report.category
-                ?.toLowerCase()
-                .includes(
-                    searchTerm.toLowerCase()
-                ) ||
-            report.userName
-                ?.toLowerCase()
-                .includes(
-                    searchTerm.toLowerCase()
-                );
+        (report) => {
+            const matchesSearch =
+                report.category
+                    ?.toLowerCase()
+                    .includes(
+                        searchTerm.toLowerCase()
+                    ) ||
+                report.userName
+                    ?.toLowerCase()
+                    .includes(
+                        searchTerm.toLowerCase()
+                    );
 
-        const matchesStatus =
-            statusFilter === "All" ||
-            (report.status ||
-                "Reported") === statusFilter;
+            const matchesStatus =
+                statusFilter === "All" ||
+                (report.status ||
+                    "Reported") === statusFilter;
 
-        return (
-            matchesSearch &&
-            matchesStatus
-        );
-    }
-);
+            return (
+                matchesSearch &&
+                matchesStatus
+            );
+        }
+    );
 
     const handleStatusChange = async (
         reportId,
@@ -88,7 +91,26 @@ function AdminDashboard() {
         await loadReports();
         await loadStatistics();
     };
+    if (!isAdmin) {
+        return (
+            <div className="mt-8 border border-red-500 rounded-xl p-6">
+                <h2 className="text-2xl font-bold mb-4">
+                    Admin Dashboard
+                </h2>
 
+                <p className="text-gray-300 mb-4">
+                    Admin access required.
+                </p>
+
+                <button
+                    onClick={() => setIsAdmin(true)}
+                    className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg"
+                >
+                    Enter Admin Mode
+                </button>
+            </div>
+        );
+    }
     return (
         <div className="mt-8 border border-red-500 rounded-xl p-6">
             <h2 className="text-3xl font-bold mb-6">
@@ -151,30 +173,30 @@ function AdminDashboard() {
                     All Reports
                 </h3>
                 <div className="flex flex-col md:flex-row gap-4 mb-6">
-    <input
-        type="text"
-        placeholder="Search by category or user..."
-        value={searchTerm}
-        onChange={(e) =>
-            setSearchTerm(e.target.value)
-        }
-        className="flex-1 bg-slate-800 border border-gray-600 rounded-lg p-3 text-white"
-    />
+                    <input
+                        type="text"
+                        placeholder="Search by category or user..."
+                        value={searchTerm}
+                        onChange={(e) =>
+                            setSearchTerm(e.target.value)
+                        }
+                        className="flex-1 bg-slate-800 border border-gray-600 rounded-lg p-3 text-white"
+                    />
 
-    <select
-        value={statusFilter}
-        onChange={(e) =>
-            setStatusFilter(e.target.value)
-        }
-        className="bg-slate-800 border border-gray-600 rounded-lg p-3 text-white"
-    >
-        <option value="All">All Status</option>
-        <option value="Reported">Reported</option>
-        <option value="Under Review">Under Review</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Resolved">Resolved</option>
-    </select>
-</div>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) =>
+                            setStatusFilter(e.target.value)
+                        }
+                        className="bg-slate-800 border border-gray-600 rounded-lg p-3 text-white"
+                    >
+                        <option value="All">All Status</option>
+                        <option value="Reported">Reported</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full border border-gray-700">
