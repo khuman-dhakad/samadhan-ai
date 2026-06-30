@@ -202,6 +202,7 @@ function AdminDashboard() {
                                 <th className="p-3 border">Image</th>
                                 <th className="p-3 border">Category</th>
                                 <th className="p-3 border">User</th>
+                                <th className="p-3 border">Location</th>
                                 <th className="p-3 border">Priority</th>
                                 <th className="p-3 border">Status</th>
                                 <th className="p-3 border">Action</th>
@@ -233,6 +234,12 @@ function AdminDashboard() {
 
                                     <td className="p-3 border">
                                         {report.userName}
+                                    </td>
+
+                                    <td className="p-3 border max-w-xs">
+                                        <span className="text-sm break-words">
+                                            {report.locationName || "N/A"}
+                                        </span>
                                     </td>
 
                                     <td className="p-3 border">

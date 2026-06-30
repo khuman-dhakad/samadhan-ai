@@ -84,6 +84,12 @@ function MyReports({ user, refresh }) {
                             <strong>Priority:</strong>{" "}
                             {report.priority}
                         </p>
+                        {report.locationName && (
+                            <p>
+                                <strong>📍 Location:</strong>{" "}
+                                {report.locationName}
+                            </p>
+                        )}
                     </div>
                 ))
             )}
