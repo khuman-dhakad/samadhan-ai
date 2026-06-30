@@ -34,6 +34,7 @@ const unknownIcon = createIcon(greyMarker);
 const selectedIcon = createIcon(selectedMarker);
 
 function LocationMarker({
+    selectedLocation,
     setSelectedLocation,
 }) {
     useMapEvents({
@@ -42,7 +43,12 @@ function LocationMarker({
         },
     });
 
-    return null;
+    return selectedLocation ? (
+        <Marker
+            position={selectedLocation}
+            icon={selectedIcon}
+        />
+    ) : null;
 }
 
 function MapView({
@@ -76,18 +82,21 @@ function MapView({
                 return unknownIcon;
         }
     };
-       return (
-        <div className="mt-8 border border-green-500 rounded-xl p-4">
+
+    return (
+        <div className="mt-8 border border-green-500 rounded-xl p-4 bg-slate-900">
+
             <h2 className="text-2xl font-bold mb-4">
-                Community Issues Map
+                📍 Select Issue Location
             </h2>
 
             <MapContainer
                 center={[23.2599, 77.4126]}
                 zoom={13}
                 style={{
-                    height: "500px",
+                    height: "300px",
                     width: "100%",
+                    borderRadius: "12px",
                 }}
             >
                 <TileLayer
@@ -115,51 +124,41 @@ function MapView({
                             )}
                         >
                             <Popup>
-                                <div className="text-black w-48">
+                                <div className="text-black w-52">
+
                                     <h3 className="text-lg font-bold">
                                         {report.category}
                                     </h3>
 
                                     <p className="mt-2">
-                                        <strong>
-                                            📍 Location
-                                        </strong>
+                                        <strong>📍 Location</strong>
                                         <br />
                                         {report.locationName}
                                     </p>
 
                                     <p className="mt-2">
-                                        <strong>
-                                            Priority:
-                                        </strong>{" "}
+                                        <strong>Priority:</strong>{" "}
                                         {report.priority}
                                     </p>
 
                                     <p>
-                                        <strong>
-                                            Status:
-                                        </strong>{" "}
+                                        <strong>Status:</strong>{" "}
                                         {report.status}
                                     </p>
 
                                     <p>
-                                        <strong>
-                                            Reporter:
-                                        </strong>{" "}
+                                        <strong>Reporter:</strong>{" "}
                                         {report.userName}
                                     </p>
 
                                     {report.imageUrl && (
                                         <img
-                                            src={
-                                                report.imageUrl
-                                            }
-                                            alt={
-                                                report.category
-                                            }
+                                            src={report.imageUrl}
+                                            alt={report.category}
                                             className="w-full h-28 object-cover rounded mt-3"
                                         />
                                     )}
+
                                 </div>
                             </Popup>
                         </Marker>
@@ -168,27 +167,31 @@ function MapView({
 
                 <LocationMarker
                     selectedLocation={selectedLocation}
-                    setSelectedLocation={
-                        setSelectedLocation
-                    }
+                    setSelectedLocation={setSelectedLocation}
                 />
             </MapContainer>
 
             {selectedLocation && (
-                <div className="mt-4 bg-slate-800 rounded-lg p-4">
+                <div className="mt-4 bg-slate-800 border border-slate-700 rounded-xl p-4">
+
+                    <h3 className="text-lg font-semibold mb-3">
+                        Selected Location
+                    </h3>
+
                     <p>
                         <strong>Latitude:</strong>{" "}
-                        {selectedLocation.lat.toFixed(
-                            6
-                        )}
+                        {selectedLocation.lat.toFixed(6)}
                     </p>
 
                     <p>
                         <strong>Longitude:</strong>{" "}
-                        {selectedLocation.lng.toFixed(
-                            6
-                        )}
+                        {selectedLocation.lng.toFixed(6)}
                     </p>
+
+                    <p className="mt-3 text-green-400 font-medium">
+                        ✅ Location Selected Successfully
+                    </p>
+
                 </div>
             )}
         </div>
