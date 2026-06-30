@@ -136,7 +136,7 @@ function ReportIssue() {
             alert("Analysis Failed");
         }
     };
-        return (
+    return (
         <div className="min-h-screen bg-slate-950 text-white p-8">
             <h1 className="text-4xl font-bold mb-6">
                 Report Community Issue
@@ -245,8 +245,9 @@ function ReportIssue() {
                 selectedLocation={selectedLocation}
                 setSelectedLocation={setSelectedLocation}
                 refresh={true}
+                showReports={false}
             />
-                    </div>
+        </div>
     );
 }
 

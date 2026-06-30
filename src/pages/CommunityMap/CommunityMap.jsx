@@ -12,11 +12,8 @@ function CommunityMap() {
             </h1>
 
             <MapView
-                selectedLocation={selectedLocation}
-                setSelectedLocation={
-                    setSelectedLocation
-                }
                 refresh={true}
+                showReports={true}
             />
         </div>
     );
