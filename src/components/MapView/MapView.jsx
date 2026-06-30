@@ -34,7 +34,6 @@ const unknownIcon = createIcon(greyMarker);
 const selectedIcon = createIcon(selectedMarker);
 
 function LocationMarker({
-    selectedLocation,
     setSelectedLocation,
 }) {
     useMapEvents({
@@ -43,12 +42,7 @@ function LocationMarker({
         },
     });
 
-    return selectedLocation ? (
-        <Marker
-            position={selectedLocation}
-            icon={selectedIcon}
-        />
-    ) : null;
+    return null;
 }
 
 function MapView({
