@@ -1,1 +1,6 @@
 @import "tailwindcss";
+button,
+input[type="file"],
+label[for] {
+    cursor: pointer;
+}
