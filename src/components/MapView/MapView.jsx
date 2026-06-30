@@ -5,6 +5,7 @@ import {
     TileLayer,
     Marker,
     Popup,
+    CircleMarker,
     useMapEvents,
 } from "react-leaflet";
 
@@ -38,17 +39,33 @@ function LocationMarker({
     setSelectedLocation,
 }) {
     useMapEvents({
-        click(event) {
-            setSelectedLocation(event.latlng);
+        click(e) {
+            if (setSelectedLocation) {
+                setSelectedLocation({
+                    lat: e.latlng.lat,
+                    lng: e.latlng.lng,
+                });
+            }
         },
     });
 
-    return selectedLocation ? (
-        <Marker
-            position={selectedLocation}
-            icon={selectedIcon}
+    if (!selectedLocation) return null;
+
+    return (
+        <CircleMarker
+            center={[
+                selectedLocation.lat,
+                selectedLocation.lng,
+            ]}
+            radius={8}
+            pathOptions={{
+                color: "#22c55e",
+                fillColor: "#22c55e",
+                fillOpacity: 1,
+                weight: 2,
+            }}
         />
-    ) : null;
+    );
 }
 
 function MapView({
