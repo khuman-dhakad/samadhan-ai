@@ -1,16 +1,233 @@
-# React + Vite
+# 🚀 Samadhan AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<div align="center">
 
-Currently, two official plugins are available:
+### 🤖 AI-Powered Community Issue Reporting Platform
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Built for **Coding Ninjas × Google AI Hackathon 2026**
 
-## React Compiler
+[![React](https://img.shields.io/badge/React-19-blue?logo=react)]()
+[![Vite](https://img.shields.io/badge/Vite-Latest-purple?logo=vite)]()
+[![Firebase](https://img.shields.io/badge/Firebase-Authentication-orange?logo=firebase)]()
+[![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-blue?logo=google)]()
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-Image_Storage-blue)]()
+[![License](https://img.shields.io/badge/License-MIT-green)]()
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+🌐 **Live Demo**  
+https://samadhan-ai-rho.vercel.app
 
-## Expanding the ESLint configuration
+💻 **GitHub Repository**  
+https://github.com/khuman-dhakad/samadhan-ai
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+</div>
+
+---
+
+# 📖 Overview
+
+Samadhan AI is an AI-powered civic issue reporting platform that enables citizens to report public infrastructure problems using image analysis and location intelligence.
+
+Citizens simply upload an image, and **Google Gemini AI** automatically analyzes it, identifies the issue, assigns severity and priority, and stores the report with its exact location for transparent community monitoring.
+
+---
+
+# ✨ Key Features
+
+- 🤖 AI Image Analysis using Google Gemini
+- 📍 Interactive Location Selection
+- 🗺 Community Issue Map
+- 🔐 Google Authentication
+- ☁ Cloudinary Image Storage
+- 🔥 Firebase Firestore Database
+- 👤 Personal Report Dashboard
+- 👑 Admin Dashboard
+- 📱 Responsive Interface
+- ⚡ Fast React + Vite Application
+
+---
+
+# 🏗 System Architecture
+
+```text
+              User
+                │
+                ▼
+      Google Authentication
+                │
+                ▼
+         Upload Issue Image
+                │
+                ▼
+         Google Gemini AI
+                │
+     Category • Severity • Priority
+                │
+                ▼
+       Select Issue Location
+                │
+                ▼
+      Upload Image → Cloudinary
+                │
+                ▼
+     Store Report → Firestore
+                │
+       ┌────────┴────────┐
+       ▼                 ▼
+ Community Map      My Reports
+```
+
+---
+
+# 🛠 Tech Stack
+
+| Category | Technologies |
+|----------|--------------|
+| Frontend | React, Vite, Tailwind CSS |
+| Maps | React Leaflet, OpenStreetMap |
+| AI | Google Gemini AI |
+| Authentication | Firebase Authentication |
+| Database | Cloud Firestore |
+| Image Storage | Cloudinary |
+| Deployment | Vercel |
+
+---
+
+# 📂 Project Structure
+
+```text
+src
+│
+├── assets
+├── components
+│   ├── Navbar
+│   ├── MapView
+│   ├── ReportsDashboard
+│   ├── MyReports
+│   └── AdminDashboard
+│
+├── pages
+│   ├── Home
+│   ├── ReportIssue
+│   ├── CommunityMap
+│   ├── MyReports
+│   └── Admin
+│
+├── services
+│   ├── firebase
+│   ├── gemini
+│   ├── cloudinary
+│   └── map
+│
+└── utils
+```
+
+---
+
+# 📸 Screenshots
+
+## 📝 Report Community Issue
+
+![Report](screenshots/report.png)
+
+---
+
+## 🤖 AI Image Analysis
+
+![AI Analysis](screenshots/ai-analysis.png)
+
+---
+
+## 🗺 Community Map
+
+![Community Map](screenshots/community-map.png)
+
+---
+
+## 📋 My Reports
+
+![My Reports](screenshots/my-reports.png)
+
+---
+
+## 👑 Admin Dashboard
+
+![Admin Dashboard](screenshots/admin-dashboard.png)
+
+---
+
+# 🚀 Installation
+
+```bash
+git clone https://github.com/khuman-dhakad/samadhan-ai.git
+
+cd samadhan-ai
+
+npm install
+
+npm run dev
+```
+
+---
+
+# 🔐 Environment Variables
+
+Create a `.env` file:
+
+```env
+VITE_GEMINI_API_KEY=
+
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+---
+
+# 🚀 Deployment
+
+The application is deployed on **Vercel**.
+
+**Live URL**
+
+https://samadhan-ai-rho.vercel.app
+
+---
+
+# 🔮 Future Improvements
+
+- Authority Dashboard
+- Real-time Notifications
+- Report Verification Workflow
+- Analytics Dashboard
+- Mobile Application
+- Multi-language Support
+- AI-based Duplicate Report Detection
+
+---
+
+# 👨‍💻 Developer
+
+**Khuman Dhakad**
+
+MCA Student • Full Stack Developer • AI Enthusiast
+
+GitHub  
+https://github.com/khuman-dhakad
+
+LinkedIn  
+https://linkedin.com/in/khuman-dhakad
+
+---
+
+<div align="center">
+
+### ⭐ Built with React, Firebase & Google Gemini AI
+
+**Coding Ninjas × Google AI Hackathon 2026**
+
+If you like this project, don't forget to ⭐ the repository.
+
+</div>
