@@ -27,12 +27,13 @@ function LocationMarker({
 function MapView({
     selectedLocation,
     setSelectedLocation,
+    refresh,
 }) {
     const [reports, setReports] = useState([]);
 
     useEffect(() => {
         loadReports();
-    }, []);
+    }, [refresh]);
 
     const loadReports = async () => {
         const data = await getAllReports();

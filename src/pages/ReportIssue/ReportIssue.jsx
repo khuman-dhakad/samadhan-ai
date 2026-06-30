@@ -293,6 +293,8 @@ function ReportIssue() {
             <MapView
                 selectedLocation={selectedLocation}
                 setSelectedLocation={setSelectedLocation}
+                refresh={refreshDashboard}
+
             />
         </div>
     );
