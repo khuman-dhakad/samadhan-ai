@@ -6,6 +6,8 @@ import ReportsDashboard from "../../components/ReportsDashboard/ReportsDashboard
 import MyReports from "../../components/MyReports/MyReports";
 import AdminDashboard from "../../components/AdminDashboard/AdminDashboard";
 import { uploadImage } from "../../services/cloudinary/cloudinaryService";
+import MapView from "../../components/MapView/MapView";
+import { getLocationName } from "../../services/map/locationService";
 
 import {
     signInWithGoogle,
@@ -15,6 +17,7 @@ import {
 
 function ReportIssue() {
     const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedLocation, setSelectedLocation] = useState(null);
     const [analysis, setAnalysis] = useState(null);
     const [user, setUser] = useState(null);
     const [refreshDashboard, setRefreshDashboard] = useState(false);
@@ -51,73 +54,137 @@ function ReportIssue() {
         setUser(null);
     };
 
-    const handleAnalyze = async () => {
-        if (!selectedImage) {
-            alert("Please select an image first");
-            return;
-        }
+   const handleAnalyze = async () => {
+    console.log("HANDLE ANALYZE STARTED");
 
-        try {
-            // ============================
-            // STEP 1: Upload Image First
-            // ============================
-            const imageUrl = await uploadImage(selectedImage);
+    if (!selectedImage) {
+        alert("Please select an image first");
+        return;
+    }
 
-            console.log("Uploaded Image URL:", imageUrl);
+    if (!selectedLocation) {
+        alert("Please select a location on the map");
+        return;
+    }
 
-            // ============================
-            // STEP 2: Convert Image
-            // ============================
-            const base64Image = await fileToBase64(selectedImage);
+    try {
+        // ============================
+        // STEP 1: Upload Image
+        // ============================
+        const imageUrl = await uploadImage(selectedImage);
 
-            // ============================
-            // STEP 3: Analyze with Gemini
-            // ============================
-            const result = await analyzeCommunityIssue(base64Image);
+        console.log("Uploaded Image URL:", imageUrl);
 
-            console.log("RAW RESULT:");
-            console.log(result);
+        // ============================
+        // STEP 2: Convert Image
+        // ============================
+        const base64Image =
+            await fileToBase64(selectedImage);
 
-            const cleanedResult = result
-                .replace(/```json/g, "")
-                .replace(/```/g, "")
-                .trim();
+        // ============================
+        // STEP 3: Analyze with Gemini
+        // ============================
+        const result =
+            await analyzeCommunityIssue(base64Image);
 
-            const parsedData = JSON.parse(cleanedResult);
+        console.log("RAW RESULT:");
+        console.log(result);
 
-            setAnalysis(parsedData);
+        const cleanedResult = result
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
 
-            console.log("Current User:", user);
+        const parsedData =
+            JSON.parse(cleanedResult);
 
-            // ============================
-            // STEP 4: Save Report
-            // ============================
-            const reportId = await saveIssueReport({
-                ...parsedData,
+        // ============================
+        // STEP 4: Get Location Name
+        // ============================
+        const locationName =
+            await getLocationName(
+                selectedLocation.lat,
+                selectedLocation.lng
+            );
 
-                imageName: selectedImage.name,
-                imageUrl,
+        console.log(
+            "Selected Location:",
+            selectedLocation
+        );
 
-                createdAt: new Date().toISOString(),
+        console.log(
+            "Location Name:",
+            locationName
+        );
 
-                userId: user?.uid || "anonymous",
+        // ============================
+        // STEP 5: Update UI
+        // ============================
+        setAnalysis(parsedData);
 
-                userName:
-                    user?.displayName ||
-                    "Anonymous User",
+        console.log(
+            "Current User:",
+            user
+        );
 
-                userEmail:
-                    user?.email || "",
-            });
+        // ============================
+        // STEP 6: Create Report Object
+        // ============================
+        const reportData = {
+            ...parsedData,
 
-            console.log("Saved Report ID:", reportId);
+            imageName:
+                selectedImage.name,
 
-            setRefreshDashboard((prev) => !prev);
-        } catch (error) {
-            console.error(error);
-            alert("Analysis Failed");
-        }
-    };
+            imageUrl,
+
+            latitude:
+                selectedLocation.lat,
+
+            longitude:
+                selectedLocation.lng,
+
+            locationName,
+
+            createdAt:
+                new Date().toISOString(),
+
+            userId:
+                user?.uid ||
+                "anonymous",
+
+            userName:
+                user?.displayName ||
+                "Anonymous User",
+
+            userEmail:
+                user?.email || "",
+        };
+
+        console.log(
+            "Complete Report Data:"
+        );
+        console.log(reportData);
+
+        // ============================
+        // STEP 7: Save Report
+        // ============================
+        const reportId =
+            await saveIssueReport(reportData);
+
+        console.log(
+            "Saved Report ID:",
+            reportId
+        );
+
+        setRefreshDashboard(
+            (prev) => !prev
+        );
+    } catch (error) {
+        console.error(error);
+        alert("Analysis Failed");
+    }
+};
 
     return (
         <div className="min-h-screen bg-slate-950 text-white p-8">
@@ -223,6 +290,12 @@ function ReportIssue() {
             />
 
             <AdminDashboard />
+            <MapView
+                selectedLocation={selectedLocation}
+                setSelectedLocation={setSelectedLocation}
+                refresh={refreshDashboard}
+
+            />
         </div>
     );
 }
