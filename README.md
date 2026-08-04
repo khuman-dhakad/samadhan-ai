@@ -220,6 +220,9 @@ https://github.com/khuman-dhakad
 LinkedIn  
 https://linkedin.com/in/khuman-dhakad
 
+X
+https://x.com/khuman__
+
 ---
 
 <div align="center">
