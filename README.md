@@ -25,7 +25,7 @@ https://github.com/khuman-dhakad/samadhan-ai
 
 # 📖 Overview
 
-Samadhan AI is an AI-powered civic issue reporting platform that enables citizens to report public infrastructure problems using image analysis and location intelligence.
+Samadhan AI is an AI-powered civic issue reporting platform that enables citizens to report public infrastructure problems using image analysis and locations and near intelligence.
 
 Citizens simply upload an image, and **Google Gemini AI** automatically analyzes it, identifies the issue, assigns severity and priority, and stores the report with its exact location for transparent community monitoring.
 
