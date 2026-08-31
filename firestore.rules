@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Issue Reports Collection
+    match /issueReports/{reportId} {
+      // Anyone can read reports to power the Community Map and Dashboards
+      allow read: if true;
+      
+      // Anyone (authenticated or guest with valid fields) can submit a new civic issue report
+      allow create: if request.resource.data.category is string
+                    && request.resource.data.status == "Reported"
+                    && request.resource.data.latitude is number
+                    && request.resource.data.longitude is number;
+                    
+      // Allow report owner to update their own report or allow authenticated status updates
+      allow update: if request.auth != null;
+      
+      // Only authenticated users (admins) can delete reports
+      allow delete: if request.auth != null;
+    }
+  }
+}

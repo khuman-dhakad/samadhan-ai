@@ -5,7 +5,6 @@ import {
     TileLayer,
     Marker,
     Popup,
-    CircleMarker,
     useMapEvents,
 } from "react-leaflet";
 
@@ -34,7 +33,7 @@ const lowIcon = createIcon(violetMarker);
 const unknownIcon = createIcon(greyMarker);
 const selectedIcon = createIcon(selectedMarker);
 
-function LocationMarker({
+function LocationPickerMarker({
     selectedLocation,
     setSelectedLocation,
 }) {
@@ -49,22 +48,23 @@ function LocationMarker({
         },
     });
 
-    if (!selectedLocation) return null;
+    if (!selectedLocation || isNaN(selectedLocation.lat) || isNaN(selectedLocation.lng)) {
+        return null;
+    }
 
     return (
-        <CircleMarker
-            center={[
-                selectedLocation.lat,
-                selectedLocation.lng,
-            ]}
-            radius={8}
-            pathOptions={{
-                color: "#22c55e",
-                fillColor: "#22c55e",
-                fillOpacity: 1,
-                weight: 2,
-            }}
-        />
+        <Marker
+            position={[selectedLocation.lat, selectedLocation.lng]}
+            icon={selectedIcon}
+        >
+            <Popup>
+                <div className="text-slate-900 font-medium text-xs">
+                    📍 Selected Location<br />
+                    Lat: {selectedLocation.lat.toFixed(5)}<br />
+                    Lng: {selectedLocation.lng.toFixed(5)}
+                </div>
+            </Popup>
+        </Marker>
     );
 }
 
@@ -72,143 +72,158 @@ function MapView({
     selectedLocation,
     setSelectedLocation,
     refresh,
+    showReports = true,
+    height = "420px",
+    title,
+    priorityFilter = "All",
 }) {
     const [reports, setReports] = useState([]);
 
     useEffect(() => {
-        loadReports();
-    }, [refresh]);
-
-    const loadReports = async () => {
-        const data = await getAllReports();
-        setReports(data);
-    };
+        if (!showReports) return;
+        let isMounted = true;
+        getAllReports().then((data) => {
+            if (isMounted) {
+                setReports(data);
+            }
+        }).catch((err) => {
+            console.error("Error loading map reports:", err);
+        });
+        return () => {
+            isMounted = false;
+        };
+    }, [showReports, refresh]);
 
     const getPriorityIcon = (priority) => {
-        switch (priority) {
-            case "High":
+        switch ((priority || "").toLowerCase()) {
+            case "high":
+            case "critical":
                 return highIcon;
-
-            case "Medium":
+            case "medium":
                 return mediumIcon;
-
-            case "Low":
+            case "low":
                 return lowIcon;
-
             default:
                 return unknownIcon;
         }
     };
 
+    const validReports = reports.filter((report) => {
+        const lat = Number(report.latitude);
+        const lng = Number(report.longitude);
+        const hasValidCoords = !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+        const matchesPriority =
+            priorityFilter === "All" ||
+            (report.priority || "").toLowerCase() === priorityFilter.toLowerCase();
+        return hasValidCoords && matchesPriority;
+    });
+
     return (
-        <div className="mt-8 border border-green-500 rounded-xl p-4 bg-slate-900">
+        <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
+            {title && (
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                        {title}
+                    </h2>
+                </div>
+            )}
 
-            <h2 className="text-2xl font-bold mb-4">
-                📍 Select Issue Location
-            </h2>
+            <div className="relative rounded-xl overflow-hidden border border-slate-700/80 shadow-inner">
+                <MapContainer
+                    center={[23.2599, 77.4126]}
+                    zoom={13}
+                    style={{
+                        height: height,
+                        width: "100%",
+                        zIndex: 10,
+                    }}
+                    scrollWheelZoom={false}
+                >
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
 
-            <MapContainer
-                center={[23.2599, 77.4126]}
-                zoom={13}
-                style={{
-                    height: "300px",
-                    width: "100%",
-                    borderRadius: "12px",
-                }}
-            >
-                <TileLayer
-                    attribution="&copy; OpenStreetMap contributors"
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
+                    {showReports &&
+                        validReports.map((report) => {
+                            const lat = Number(report.latitude);
+                            const lng = Number(report.longitude);
 
-                {reports.map((report) => {
-                    if (
-                        !report.latitude ||
-                        !report.longitude
-                    ) {
-                        return null;
-                    }
+                            return (
+                                <Marker
+                                    key={report.id}
+                                    position={[lat, lng]}
+                                    icon={getPriorityIcon(report.priority)}
+                                >
+                                    <Popup>
+                                        <div className="text-slate-900 w-56 p-1 text-xs">
+                                            <div className="flex items-center justify-between gap-1 mb-1">
+                                                <h3 className="font-bold text-sm text-slate-900 truncate">
+                                                    {report.category || "Civic Issue"}
+                                                </h3>
+                                                <span
+                                                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                                        (report.priority || "").toLowerCase() === "high"
+                                                            ? "bg-red-100 text-red-700"
+                                                            : (report.priority || "").toLowerCase() === "medium"
+                                                            ? "bg-yellow-100 text-yellow-800"
+                                                            : "bg-purple-100 text-purple-700"
+                                                    }`}
+                                                >
+                                                    {report.priority || "Med"}
+                                                </span>
+                                            </div>
 
-                    return (
-                        <Marker
-                            key={report.id}
-                            position={[
-                                report.latitude,
-                                report.longitude,
-                            ]}
-                            icon={getPriorityIcon(
-                                report.priority
-                            )}
-                        >
-                            <Popup>
-                                <div className="text-black w-52">
+                                            <p className="text-slate-600 mb-1">
+                                                📍 {report.locationName || `${lat.toFixed(4)}, ${lng.toFixed(4)}`}
+                                            </p>
 
-                                    <h3 className="text-lg font-bold">
-                                        {report.category}
-                                    </h3>
+                                            <div className="grid grid-cols-2 gap-1 py-1 border-t border-slate-200 text-[11px]">
+                                                <div>
+                                                    <span className="text-slate-500">Status: </span>
+                                                    <span className="font-semibold text-blue-700">{report.status || "Reported"}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-slate-500">Dept: </span>
+                                                    <span className="font-medium truncate">{report.department || "Municipal"}</span>
+                                                </div>
+                                            </div>
 
-                                    <p className="mt-2">
-                                        <strong>📍 Location</strong>
-                                        <br />
-                                        {report.locationName}
-                                    </p>
+                                            {report.imageUrl && (
+                                                <img
+                                                    src={report.imageUrl}
+                                                    alt={report.category || "Issue photo"}
+                                                    className="w-full h-24 object-cover rounded mt-2 border border-slate-200"
+                                                    loading="lazy"
+                                                />
+                                            )}
+                                        </div>
+                                    </Popup>
+                                </Marker>
+                            );
+                        })}
 
-                                    <p className="mt-2">
-                                        <strong>Priority:</strong>{" "}
-                                        {report.priority}
-                                    </p>
-
-                                    <p>
-                                        <strong>Status:</strong>{" "}
-                                        {report.status}
-                                    </p>
-
-                                    <p>
-                                        <strong>Reporter:</strong>{" "}
-                                        {report.userName}
-                                    </p>
-
-                                    {report.imageUrl && (
-                                        <img
-                                            src={report.imageUrl}
-                                            alt={report.category}
-                                            className="w-full h-28 object-cover rounded mt-3"
-                                        />
-                                    )}
-
-                                </div>
-                            </Popup>
-                        </Marker>
-                    );
-                })}
-
-                <LocationMarker
-                    selectedLocation={selectedLocation}
-                    setSelectedLocation={setSelectedLocation}
-                />
-            </MapContainer>
+                    {setSelectedLocation && (
+                        <LocationPickerMarker
+                            selectedLocation={selectedLocation}
+                            setSelectedLocation={setSelectedLocation}
+                        />
+                    )}
+                </MapContainer>
+            </div>
 
             {selectedLocation && (
-                <div className="mt-4 bg-slate-800 border border-slate-700 rounded-xl p-4">
-
-                    <h3 className="text-lg font-semibold mb-3">
-                        Selected Location
-                    </h3>
-
-                    <p>
-                        <strong>Latitude:</strong>{" "}
-                        {selectedLocation.lat.toFixed(6)}
-                    </p>
-
-                    <p>
-                        <strong>Longitude:</strong>{" "}
-                        {selectedLocation.lng.toFixed(6)}
-                    </p>
-
-                    <p className="mt-3 text-green-400 font-medium">
-                        ✅ Location Selected Successfully
-                    </p>
-
+                <div className="mt-4 bg-slate-800/80 border border-slate-700 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                        <p className="text-xs text-slate-400 font-medium">Selected Coordinates</p>
+                        <p className="text-sm font-mono text-slate-200">
+                            Lat: <span className="text-blue-400">{selectedLocation.lat.toFixed(6)}</span> | Lng: <span className="text-blue-400">{selectedLocation.lng.toFixed(6)}</span>
+                        </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold rounded-full">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Location Marked
+                    </span>
                 </div>
             )}
         </div>
