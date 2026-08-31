@@ -2,15 +2,15 @@
 
 <div align="center">
 
-### 🤖 AI-Powered Community Issue Reporting Platform
+### 🤖 AI-Powered Hyperlocal Civic Problem Solving Platform
 
 Built for **Coding Ninjas × Google AI Hackathon 2026**
 
 [![React](https://img.shields.io/badge/React-19-blue?logo=react)]()
 [![Vite](https://img.shields.io/badge/Vite-Latest-purple?logo=vite)]()
-[![Firebase](https://img.shields.io/badge/Firebase-Authentication-orange?logo=firebase)]()
-[![Gemini AI](https://img.shields.io/badge/Google-Gemini_AI-blue?logo=google)]()
-[![Cloudinary](https://img.shields.io/badge/Cloudinary-Image_Storage-blue)]()
+[![Firebase](https://img.shields.io/badge/Firebase-Authentication_%26_Firestore-orange?logo=firebase)]()
+[![Gemini AI](https://img.shields.io/badge/Google-Gemini_2.5_Flash-blue?logo=google)]()
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-CDN_Image_Storage-blue)]()
 [![License](https://img.shields.io/badge/License-MIT-green)]()
 
 🌐 **Live Demo**  
@@ -23,202 +23,192 @@ https://github.com/khuman-dhakad/samadhan-ai
 
 ---
 
-# 📖 Overview
+## 📖 Overview
 
 Samadhan AI is an AI-powered civic issue reporting platform that enables citizens to report public infrastructure problems using image analysis and locations and near intelligence.
 
-Citizens simply upload an image, and **Google Gemini AI** automatically analyzes it, identifies the issue, assigns severity and priority, and stores the report with its exact location for transparent community monitoring.
+Citizens upload an image and pin the location on a live Leaflet map. **Google Gemini AI** automatically categorizes the issue, calculates severity, risk level, confidence score, and assigns the responsible municipal department (Public Works, Sanitation, Water Supply, Electricity Board). Reports are persisted in Cloud Firestore for transparent community tracking and administrative resolution.
 
 ---
 
-# ✨ Key Features
+## ✨ Key Capabilities
 
-- 🤖 AI Image Analysis using Google Gemini
-- 📍 Interactive Location Selection
-- 🗺 Community Issue Map
-- 🔐 Google Authentication
-- ☁ Cloudinary Image Storage
-- 🔥 Firebase Firestore Database
-- 👤 Personal Report Dashboard
-- 👑 Admin Dashboard
-- 📱 Responsive Interface
-- ⚡ Fast React + Vite Application
+- 🤖 **Multimodal AI Analysis**: Zero-shot civic issue classification and severity detection using Google Gemini 2.5 Flash.
+- 📍 **Hyperlocal Geotagging**: Interactive OpenStreetMap coordinate picker with reverse geocoding to human-readable street addresses.
+- 🗺 **Community Issue Map**: Real-time map view with priority-based color coding (High, Medium, Low) and priority filtering.
+- 🔐 **Firebase Authentication**: Seamless Google OAuth login and persistent user session management.
+- ☁ **Cloudinary CDN Image Pipeline**: Automatic image optimization, secure upload, and persistent CDN hosting.
+- 🔥 **Cloud Firestore Database**: Real-time storage with deterministic sorting, status updates, and statistics.
+- 📋 **Citizen Report Tracking**: Personalized "My Reports" portal with real-time status tracking (Reported, Under Review, In Progress, Resolved).
+- 👑 **Admin Command Center**: Role-based triage dashboard for municipal officers with search, status transitions, full-resolution inspection, and record management.
+- 📱 **Mobile-First Responsive UX**: Optimized for mobile, tablet, and desktop viewports with accessible controls.
+- 🛡️ **Production Hardened**: Resilient AI JSON sanitization, image file validation, memory leak prevention, and ErrorBoundary protection.
 
 ---
 
-# 🏗 System Architecture
+## 🏗 System Architecture
 
 ```text
-              User
-                │
-                ▼
-      Google Authentication
-                │
-                ▼
-         Upload Issue Image
-                │
-                ▼
-         Google Gemini AI
-                │
-     Category • Severity • Priority
-                │
-                ▼
-       Select Issue Location
-                │
-                ▼
-      Upload Image → Cloudinary
-                │
-                ▼
-     Store Report → Firestore
-                │
-       ┌────────┴────────┐
-       ▼                 ▼
- Community Map      My Reports
+                        Citizen / User
+                              │
+                              ▼
+                  Google OAuth Authentication
+                              │
+            ┌─────────────────┴─────────────────┐
+            ▼                                   ▼
+    Capture / Upload Image              Pin Location on Map
+            │                                   │
+            ▼                                   ▼
+  Cloudinary CDN Upload                 Reverse Geocoding
+  (Secure Image URL)                    (Street Address)
+            │                                   │
+            └─────────────────┬─────────────────┘
+                              ▼
+                   Google Gemini 2.5 Flash
+                   (Multimodal AI Analysis)
+                              │
+            ┌─────────────────┴─────────────────┐
+            ▼                                   ▼
+    Category & Severity                Department & Priority
+            │                                   │
+            └─────────────────┬─────────────────┘
+                              ▼
+                  Save to Cloud Firestore
+                  (Status: "Reported")
+                              │
+            ┌─────────────────┼─────────────────┐
+            ▼                 ▼                 ▼
+     Community Map       My Reports      Admin Dashboard
+     (Live Pins)        (User Portal)     (Triage & Ops)
 ```
 
 ---
 
-# 🛠 Tech Stack
+## 🛠 Tech Stack
 
-| Category | Technologies |
-|----------|--------------|
-| Frontend | React, Vite, Tailwind CSS |
-| Maps | React Leaflet, OpenStreetMap |
-| AI | Google Gemini AI |
-| Authentication | Firebase Authentication |
-| Database | Cloud Firestore |
-| Image Storage | Cloudinary |
-| Deployment | Vercel |
+| Layer | Technologies |
+|---|---|
+| **Frontend Framework** | React 19, Vite 8 |
+| **Styling & Design** | Tailwind CSS v4 |
+| **Routing** | React Router v7 |
+| **AI / ML** | Google Gen AI SDK (`@google/genai`), Gemini 2.5 Flash |
+| **Maps & GIS** | React Leaflet 5, Leaflet 1.9, OpenStreetMap, Nominatim API |
+| **Authentication** | Firebase Authentication (Google OAuth Provider) |
+| **Database** | Cloud Firestore |
+| **Media Storage** | Cloudinary Image Upload API |
+| **Deployment** | Vercel (with SPA rewrites configuration) |
 
 ---
 
-# 📂 Project Structure
+## 📂 Project Structure
 
 ```text
-src
-│
-├── assets
-├── components
-│   ├── Navbar
-│   ├── MapView
-│   ├── ReportsDashboard
-│   ├── MyReports
-│   └── AdminDashboard
-│
-├── pages
-│   ├── Home
-│   ├── ReportIssue
-│   ├── CommunityMap
-│   ├── MyReports
-│   └── Admin
-│
-├── services
-│   ├── firebase
-│   ├── gemini
-│   ├── cloudinary
-│   └── map
-│
-└── utils
+samadhan-ai
+├── public
+│   ├── _redirects            # SPA redirect rule for static hosts
+│   ├── favicon.svg
+│   └── icons.svg
+├── src
+│   ├── assets
+│   │   ├── hero.png
+│   │   └── markers           # Leaflet pin icons (red, yellow, violet, grey, selected)
+│   ├── components
+│   │   ├── AdminDashboard    # Municipal triage dashboard
+│   │   ├── ErrorBoundary     # Graceful error catching
+│   │   ├── MapView           # Leaflet interactive map component
+│   │   ├── MyReports         # User report card grid
+│   │   └── Navbar            # Responsive header with live auth state
+│   ├── pages
+│   │   ├── Admin             # Admin route
+│   │   ├── CommunityMap      # Community map route with filters
+│   │   ├── Home              # Landing page with hero, workflow & stats
+│   │   ├── MyReports         # User tracking portal
+│   │   └── ReportIssue       # Issue reporting workflow with Gemini & Cloudinary
+│   ├── services
+│   │   ├── cloudinary        # Cloudinary upload service
+│   │   ├── firebase          # Firebase App, Auth, and Firestore services
+│   │   ├── gemini            # Gemini multimodal AI service & JSON sanitizer
+│   │   └── map               # Nominatim reverse geocoding
+│   ├── utils
+│   │   └── fileToBase64.js   # Base64 file converter
+│   ├── App.jsx               # Route definitions and footer
+│   ├── index.css             # Tailwind CSS & global styles
+│   └── main.jsx              # React root entrypoint
+├── firestore.rules           # Declarative Firestore security rules
+├── vercel.json               # Vercel SPA routing rewrites
+├── .env.example              # Environment variable template
+└── package.json
 ```
 
 ---
 
-# 📸 Screenshots
+## 🚀 Getting Started
 
-## 📝 Report Community Issue
-
-![Report](screenshots/report.png)
-
----
-
-## 🤖 AI Image Analysis
-
-![AI Analysis](screenshots/ai-analysis.png)
-
----
-
-## 🗺 Community Map
-
-![Community Map](screenshots/community-map.png)
-
----
-
-## 📋 My Reports
-
-![My Reports](screenshots/my-reports.png)
-
----
-
-## 👑 Admin Dashboard
-
-![Admin Dashboard](screenshots/admin-dashboard.png)
-
----
-
-# 🚀 Installation
-
+### 1. Clone the repository
 ```bash
 git clone https://github.com/khuman-dhakad/samadhan-ai.git
-
 cd samadhan-ai
+```
 
+### 2. Install dependencies
+```bash
 npm install
+```
 
+### 3. Configure Environment Variables
+Copy `.env.example` to `.env` and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+```env
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+
+# Google Gemini API
+VITE_GEMINI_API_KEY=your_gemini_api_key
+
+# Cloudinary Storage
+VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
+VITE_CLOUDINARY_UPLOAD_PRESET=your_unsigned_preset
+
+# Admin Dashboard Access (Optional comma-separated list of emails)
+VITE_ADMIN_EMAILS=admin@samadhan.ai,your-email@gmail.com
+```
+
+### 4. Start Development Server
+```bash
 npm run dev
 ```
 
----
-
-# 🔐 Environment Variables
-
-Create a `.env` file:
-
-```env
-VITE_GEMINI_API_KEY=
-
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
+### 5. Build for Production
+```bash
+npm run build
 ```
 
 ---
 
-# 🚀 Deployment
+## 🔐 Security & Database Rules
 
-The application is deployed on **Vercel**.
-
-**Live URL**
-
-https://samadhan-ai-rho.vercel.app
-
----
-
-# 🔮 Future Improvements
-
-- Authority Dashboard
-- Real-time Notifications
-- Report Verification Workflow
-- Analytics Dashboard
-- Mobile Application
-- Multi-language Support
-- AI-based Duplicate Report Detection
+Production Firestore Security Rules are provided in [`firestore.rules`](./firestore.rules):
+- **Read Access**: Open for public community issue tracking.
+- **Write Access**: Allowed for valid report schemas with required fields.
+- **Admin & Mutations**: Restricted to authenticated users and authorized roles.
 
 ---
 
-# 👨‍💻 Developer
+## 👨‍💻 Developer
 
 **Khuman Dhakad**
-
 MCA Student • Full Stack Developer • AI Enthusiast
-
-GitHub  
-https://github.com/khuman-dhakad
-
-LinkedIn  
-https://linkedin.com/in/khuman-dhakad
+- [GitHub Profile](https://github.com/khuman-dhakad)
+- [LinkedIn Profile](https://linkedin.com/in/khuman-dhakad)
 
 X
 https://x.com/khuman__
@@ -227,10 +217,6 @@ https://x.com/khuman__
 
 <div align="center">
 
-### ⭐ Built with React, Firebase & Google Gemini AI
-
-**Coding Ninjas × Google AI Hackathon 2026**
-
-If you like this project, don't forget to ⭐ the repository.
+### ⭐ Built for Coding Ninjas × Google AI Hackathon 2026
 
 </div>
