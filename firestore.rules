@@ -1,23 +1,59 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Issue Reports Collection
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is string && ts.size() >= 10 && ts.size() <= 35;
+    }
+
+    function isValidReportCreate(data) {
+      return data.category is string && data.category.size() >= 2 && data.category.size() <= 100
+        && data.status == "Reported"
+        && data.priority in ["High", "Medium", "Low", "None"]
+        && data.severity in ["High", "Medium", "Low", "N/A"]
+        && data.latitude is number && data.latitude >= -90.0 && data.latitude <= 90.0
+        && data.longitude is number && data.longitude >= -180.0 && data.longitude <= 180.0
+        && data.confidence is number && data.confidence >= 0 && data.confidence <= 100
+        && data.department is string && data.department.size() <= 100
+        && data.risk is string && data.risk.size() <= 500
+        && isValidTimestamp(data.createdAt)
+        && data.imageUrl is string && data.imageUrl.size() <= 1000
+        // PII Isolation: Prohibit userEmail and phone numbers on public documents
+        && !('userEmail' in data)
+        && !('phoneNumber' in data);
+    }
+
+    // Community Issue Reports Collection
     match /issueReports/{reportId} {
-      // Anyone can read reports to power the Community Map and Dashboards
+      // Anyone can read public reports to power the Community Map and Dashboard
       allow read: if true;
-      
-      // Anyone (authenticated or guest with valid fields) can submit a new civic issue report
-      allow create: if request.resource.data.category is string
-                    && request.resource.data.status == "Reported"
-                    && request.resource.data.latitude is number
-                    && request.resource.data.longitude is number;
-                    
-      // Allow report owner to update their own report or allow authenticated status updates
-      allow update: if request.auth != null;
-      
-      // Only authenticated users (admins) can delete reports
-      allow delete: if request.auth != null;
+
+      // Authenticated users or guest citizens can submit valid reports
+      allow create: if isValidReportCreate(request.resource.data)
+                    && (request.auth == null
+                        ? request.resource.data.userId == "anonymous"
+                        : request.resource.data.userId == request.auth.uid);
+
+      // Only verified administrators (with admin custom claim) may update report status
+      allow update: if isAdmin();
+
+      // Only verified administrators (with admin custom claim) may delete reports
+      allow delete: if isAdmin();
+
+      // Private metadata subcollection for user contact details
+      match /private/{docId} {
+        allow read: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/issueReports/$(reportId)).data.userId);
+        allow create: if (request.auth != null && request.auth.uid == request.resource.data.userId) || isAdmin();
+        allow update, delete: if isAdmin();
+      }
     }
   }
 }
