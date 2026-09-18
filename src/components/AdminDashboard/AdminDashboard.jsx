@@ -1,16 +1,22 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
     getReportStatistics,
     getAllReports,
     updateReportStatus,
     deleteReport,
 } from "../../services/firebase/reportService";
-import { signInWithGoogle, listenForAuthChanges } from "../../services/firebase/authService";
+import { useAuth } from "../../context/useAuth";
 
 function AdminDashboard() {
-    const [user, setUser] = useState(null);
-    const [authLoaded, setAuthLoaded] = useState(false);
-    const [signingIn, setSigningIn] = useState(false);
+    const {
+        user,
+        authLoaded,
+        isAdmin,
+        hasAdminClaim,
+        isSigningIn,
+        loginWithGoogle,
+        refreshClaims,
+    } = useAuth();
 
     const [stats, setStats] = useState({
         total: 0,
@@ -21,7 +27,7 @@ function AdminDashboard() {
     });
 
     const [reports, setReports] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
@@ -29,37 +35,16 @@ function AdminDashboard() {
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [refreshIndex, setRefreshIndex] = useState(0);
 
-    // List of configured admin emails
-    const adminEmails = useMemo(() => {
-        const envAdmins = import.meta.env.VITE_ADMIN_EMAILS || "";
-        return envAdmins
-            .split(",")
-            .map((email) => email.trim().toLowerCase())
-            .filter(Boolean);
-    }, []);
-
-    // Listen for auth state
-    useEffect(() => {
-        const unsubscribe = listenForAuthChanges((currentUser) => {
-            setUser(currentUser);
-            setAuthLoaded(true);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    // Check if the current authenticated user is an authorized admin
-    const isAuthorizedAdmin = useMemo(() => {
-        if (!user || !user.email) return false;
-        if (adminEmails.length === 0) return true;
-        return adminEmails.includes(user.email.toLowerCase());
-    }, [user, adminEmails]);
-
     // Data fetching effect
     useEffect(() => {
-        if (!isAuthorizedAdmin) return;
+        if (!isAdmin) {
+            return;
+        }
 
         let isMounted = true;
+        Promise.resolve().then(() => {
+            if (isMounted) setLoading(true);
+        });
 
         Promise.all([getReportStatistics(), getAllReports()])
             .then(([statsData, reportsData]) => {
@@ -79,16 +64,13 @@ function AdminDashboard() {
         return () => {
             isMounted = false;
         };
-    }, [isAuthorizedAdmin, refreshIndex]);
+    }, [isAdmin, refreshIndex]);
 
     const handleGoogleSignIn = async () => {
-        setSigningIn(true);
         try {
-            await signInWithGoogle();
+            await loginWithGoogle();
         } catch (err) {
             console.error("Admin sign in failed:", err);
-        } finally {
-            setSigningIn(false);
         }
     };
 
@@ -163,17 +145,17 @@ function AdminDashboard() {
                 </p>
                 <button
                     onClick={handleGoogleSignIn}
-                    disabled={signingIn}
+                    disabled={isSigningIn}
                     className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-semibold text-sm px-6 py-3 rounded-xl shadow transition disabled:opacity-50"
                 >
-                    {signingIn ? "Signing In..." : "Sign In with Google"}
+                    {isSigningIn ? "Signing In..." : "Sign In with Google"}
                 </button>
             </div>
         );
     }
 
-    // Case 3: Logged in, but email not in VITE_ADMIN_EMAILS list
-    if (!isAuthorizedAdmin) {
+    // Case 3: Logged in, but not an authorized admin
+    if (!isAdmin) {
         return (
             <div className="bg-slate-900 border border-red-500/40 rounded-2xl p-10 text-center space-y-4 max-w-lg mx-auto shadow-2xl">
                 <div className="w-16 h-16 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center text-3xl mx-auto">
@@ -186,8 +168,16 @@ function AdminDashboard() {
                     Logged in as <span className="font-semibold text-white">{user.email}</span>
                 </p>
                 <p className="text-slate-400 text-xs leading-relaxed">
-                    This account is not authorized as a municipal administrator. Contact your platform administrator to configure your email in <code className="text-red-300 bg-red-950/60 px-1 py-0.5 rounded">VITE_ADMIN_EMAILS</code>.
+                    This account is not authorized as a municipal administrator. Municipal administration requires a verified Firebase Admin custom claim or authorized configuration.
                 </p>
+                <div className="pt-2">
+                    <button
+                        onClick={refreshClaims}
+                        className="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg transition"
+                    >
+                        🔄 Re-check Admin Permissions
+                    </button>
+                </div>
             </div>
         );
     }
@@ -198,16 +188,34 @@ function AdminDashboard() {
             {/* Header Admin Info */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 border border-slate-800 rounded-2xl p-5 gap-3 shadow-lg">
                 <div>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Admin Session Active
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Admin Session Active
+                        </span>
+                        {hasAdminClaim ? (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                Verified Custom Claim
+                            </span>
+                        ) : (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                Dev Email Match
+                            </span>
+                        )}
+                    </div>
                     <p className="text-sm font-semibold text-slate-200 mt-1">
                         {user.displayName || user.email}
                     </p>
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={refreshClaims}
+                        className="text-xs text-slate-400 hover:text-slate-200 bg-slate-800/80 px-2.5 py-2 rounded-lg border border-slate-700 transition"
+                        title="Check Firebase Custom Claims"
+                    >
+                        🔑 Verify Token
+                    </button>
                     <button
                         onClick={() => {
                             setLoading(true);

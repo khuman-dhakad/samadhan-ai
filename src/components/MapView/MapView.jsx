@@ -33,17 +33,28 @@ const lowIcon = createIcon(violetMarker);
 const unknownIcon = createIcon(greyMarker);
 const selectedIcon = createIcon(selectedMarker);
 
+// Unify default Leaflet marker assets for Vite production bundling
+if (L?.Icon?.Default?.prototype?._getIconUrl) {
+    delete L.Icon.Default.prototype._getIconUrl;
+}
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: selectedMarker,
+    iconUrl: selectedMarker,
+    shadowUrl: markerShadow,
+});
+
 function LocationPickerMarker({
     selectedLocation,
     setSelectedLocation,
 }) {
     useMapEvents({
         click(e) {
-            if (setSelectedLocation) {
-                setSelectedLocation({
-                    lat: e.latlng.lat,
-                    lng: e.latlng.lng,
-                });
+            if (setSelectedLocation && e.latlng) {
+                const lat = Number(e.latlng.lat);
+                const lng = Number(e.latlng.lng);
+                if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                    setSelectedLocation({ lat, lng });
+                }
             }
         },
     });

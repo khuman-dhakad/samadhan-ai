@@ -1,38 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
-import {
-    signInWithGoogle,
-    logoutUser,
-    listenForAuthChanges,
-} from "../../services/firebase/authService";
+import { useAuth } from "../../context/useAuth";
 
 function Navbar() {
-    const [user, setUser] = useState(null);
+    const { user, isSigningIn, loginWithGoogle, logout } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isSigningIn, setIsSigningIn] = useState(false);
-
-    useEffect(() => {
-        const unsubscribe = listenForAuthChanges((currentUser) => {
-            setUser(currentUser);
-        });
-
-        return () => unsubscribe();
-    }, []);
 
     const handleGoogleLogin = async () => {
-        setIsSigningIn(true);
         try {
-            await signInWithGoogle();
+            await loginWithGoogle();
         } catch (error) {
             console.error("Sign in failed", error);
-        } finally {
-            setIsSigningIn(false);
         }
     };
 
     const handleLogout = async () => {
         try {
-            await logoutUser();
+            await logout();
         } catch (error) {
             console.error("Logout failed", error);
         }

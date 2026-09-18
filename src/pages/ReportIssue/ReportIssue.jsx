@@ -6,18 +6,14 @@ import { saveIssueReport } from "../../services/firebase/reportService";
 import { uploadImage } from "../../services/cloudinary/cloudinaryService";
 import MapView from "../../components/MapView/MapView";
 import { getLocationName } from "../../services/map/locationService";
-import {
-    signInWithGoogle,
-    logoutUser,
-    listenForAuthChanges,
-} from "../../services/firebase/authService";
+import { useAuth } from "../../context/useAuth";
 
 function ReportIssue() {
+    const { user, loginWithGoogle, logout } = useAuth();
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
     const [selectedLocation, setSelectedLocation] = useState(null);
     const [analysis, setAnalysis] = useState(null);
-    const [user, setUser] = useState(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionStep, setSubmissionStep] = useState("");
@@ -25,14 +21,7 @@ function ReportIssue() {
     const [submittedReportId, setSubmittedReportId] = useState(null);
 
     const fileInputRef = useRef(null);
-
-    useEffect(() => {
-        const unsubscribe = listenForAuthChanges((currentUser) => {
-            setUser(currentUser);
-        });
-
-        return () => unsubscribe();
-    }, []);
+    const isSubmittingRef = useRef(false);
 
     // Clean up Object URL on unmount or file change to prevent memory leaks
     useEffect(() => {
@@ -80,7 +69,7 @@ function ReportIssue() {
 
     const handleGoogleLogin = async () => {
         try {
-            await signInWithGoogle();
+            await loginWithGoogle();
         } catch (err) {
             console.error("Login error", err);
         }
@@ -88,7 +77,7 @@ function ReportIssue() {
 
     const handleLogout = async () => {
         try {
-            await logoutUser();
+            await logout();
         } catch (err) {
             console.error("Logout error", err);
         }
@@ -98,16 +87,29 @@ function ReportIssue() {
         e?.preventDefault();
         setErrorMessage("");
 
+        if (isSubmittingRef.current) return;
+
         if (!selectedImage) {
             setErrorMessage("Please select or capture a photo of the civic issue.");
             return;
         }
 
-        if (!selectedLocation) {
-            setErrorMessage("Please select the exact issue location on the map below.");
+        if (
+            !selectedLocation ||
+            typeof selectedLocation.lat !== "number" ||
+            typeof selectedLocation.lng !== "number" ||
+            isNaN(selectedLocation.lat) ||
+            isNaN(selectedLocation.lng) ||
+            selectedLocation.lat < -90 ||
+            selectedLocation.lat > 90 ||
+            selectedLocation.lng < -180 ||
+            selectedLocation.lng > 180
+        ) {
+            setErrorMessage("Please pin a valid location on the map (-90..90 lat, -180..180 lng).");
             return;
         }
 
+        isSubmittingRef.current = true;
         setIsSubmitting(true);
         setAnalysis(null);
 
@@ -130,7 +132,7 @@ function ReportIssue() {
                 selectedLocation.lng
             );
 
-            // Step 4: Save Report to Firestore
+            // Step 4: Save Report to Firestore (userEmail is isolated to private metadata)
             setSubmissionStep("4/4 Saving report to community database...");
             const reportData = {
                 ...parsedData,
@@ -152,6 +154,7 @@ function ReportIssue() {
             console.error("Report submission failed:", error);
             setErrorMessage(error?.message || "Failed to submit report. Please check your network and try again.");
         } finally {
+            isSubmittingRef.current = false;
             setIsSubmitting(false);
             setSubmissionStep("");
         }
