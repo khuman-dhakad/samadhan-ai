@@ -1,40 +1,91 @@
+// In-memory cache to prevent duplicate geocoding requests for nearby coordinates
+const geocodeCache = new Map();
+
 /**
- * Reverse geocodes latitude and longitude to a human-readable location name via OpenStreetMap Nominatim.
+ * Validates geographic coordinate values.
+ * @param {number} latitude
+ * @param {number} longitude
+ * @returns {boolean}
+ */
+export function isValidCoordinate(latitude, longitude) {
+  return (
+    typeof latitude === "number" &&
+    typeof longitude === "number" &&
+    !isNaN(latitude) &&
+    !isNaN(longitude) &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    longitude >= -180 &&
+    longitude <= 180
+  );
+}
+
+/**
+ * Reverse geocodes latitude and longitude to a human-readable location name.
+ * Uses /api/geocode backend proxy for compliant User-Agent headers, with graceful fallback.
  * @param {number} latitude
  * @param {number} longitude
  * @returns {Promise<string>}
  */
 export async function getLocationName(latitude, longitude) {
-    if (typeof latitude !== "number" || typeof longitude !== "number" || isNaN(latitude) || isNaN(longitude)) {
-        return "Unknown Location";
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+
+  if (!isValidCoordinate(lat, lng)) {
+    return "Unknown Location";
+  }
+
+  const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+  if (geocodeCache.has(cacheKey)) {
+    return geocodeCache.get(cacheKey);
+  }
+
+  const fallback = `Coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    // First attempt: Backend serverless proxy with compliant User-Agent
+    const proxyResponse = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`, {
+      signal: controller.signal,
+      headers: { Accept: "application/json" },
+    }).catch(() => null);
+
+    clearTimeout(timeoutId);
+
+    if (proxyResponse && proxyResponse.ok) {
+      const data = await proxyResponse.json().catch(() => null);
+      if (data?.locationName) {
+        geocodeCache.set(cacheKey, data.locationName);
+        return data.locationName;
+      }
     }
 
-    const fallback = `Coordinates (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
+    // Direct fallback with timeout if proxy is not reachable
+    const directController = new AbortController();
+    const directTimeoutId = setTimeout(() => directController.abort(), 5000);
 
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const directResponse = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+      {
+        signal: directController.signal,
+        headers: { Accept: "application/json" },
+      }
+    );
 
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-            {
-                signal: controller.signal,
-                headers: {
-                    "Accept": "application/json",
-                },
-            }
-        );
+    clearTimeout(directTimeoutId);
 
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-            return fallback;
-        }
-
-        const data = await response.json();
-        return data.display_name || fallback;
-    } catch (error) {
-        console.warn("Location reverse geocoding warning:", error?.message || error);
-        return fallback;
+    if (directResponse.ok) {
+      const data = await directResponse.json();
+      const result = data.display_name || fallback;
+      geocodeCache.set(cacheKey, result);
+      return result;
     }
+
+    return fallback;
+  } catch (error) {
+    console.warn("Location reverse geocoding fallback invoked:", error?.message || error);
+    return fallback;
+  }
 }
