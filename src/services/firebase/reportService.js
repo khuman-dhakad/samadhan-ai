@@ -18,7 +18,7 @@ const VALID_STATUSES = ["Reported", "Under Review", "In Progress", "Resolved"];
  * Strips PII (such as userEmail) from public documents and stores private metadata in a protected subcollection.
  */
 export const saveIssueReport = async (reportData) => {
-  if (!isFirebaseConfigured) {
+  if (!isFirebaseConfigured || !db) {
     throw new Error(
       "Firebase is not configured. Please supply valid VITE_FIREBASE_* variables in your environment."
     );
@@ -100,7 +100,7 @@ export const saveIssueReport = async (reportData) => {
  * Retrieves all issue reports from Firestore, ordered by creation date (newest first).
  */
 export const getAllReports = async () => {
-  if (!isFirebaseConfigured) return [];
+  if (!isFirebaseConfigured || !db) return [];
 
   try {
     const querySnapshot = await getDocs(collection(db, "issueReports"));
@@ -128,7 +128,7 @@ export const getAllReports = async () => {
  * Retrieves issue reports for a specific user ID.
  */
 export const getUserReports = async (userId) => {
-  if (!isFirebaseConfigured || !userId) return [];
+  if (!isFirebaseConfigured || !db || !userId) return [];
 
   try {
     const reportsRef = collection(db, "issueReports");
@@ -159,7 +159,7 @@ export const getUserReports = async (userId) => {
  * Updates the status of an issue report (restricted to verified admins in Firestore rules).
  */
 export const updateReportStatus = async (reportId, newStatus) => {
-  if (!isFirebaseConfigured) {
+  if (!isFirebaseConfigured || !db) {
     throw new Error("Firebase is not configured");
   }
 
@@ -227,7 +227,7 @@ export const getReportStatistics = async () => {
  * Deletes a report document from Firestore (restricted to verified admins in Firestore rules).
  */
 export const deleteReport = async (reportId) => {
-  if (!isFirebaseConfigured) {
+  if (!isFirebaseConfigured || !db) {
     throw new Error("Firebase is not configured");
   }
 

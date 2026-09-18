@@ -48,15 +48,20 @@ export const formatAuthErrorMessage = (error) => {
   }
 };
 
-export const signInWithGoogle = async () => {
-  if (!isFirebaseConfigured) {
+function requireFirebaseAuth() {
+  if (!isFirebaseConfigured || !auth) {
     throw new Error(
       "Firebase Authentication is not configured. Please supply valid VITE_FIREBASE_* variables in your environment."
     );
   }
+  return auth;
+}
+
+export const signInWithGoogle = async () => {
+  const activeAuth = requireFirebaseAuth();
 
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(activeAuth, googleProvider);
     return result.user;
   } catch (error) {
     if (
@@ -72,7 +77,7 @@ export const signInWithGoogle = async () => {
 };
 
 export const logoutUser = async () => {
-  if (!isFirebaseConfigured) return;
+  if (!isFirebaseConfigured || !auth) return;
   try {
     await signOut(auth);
   } catch (error) {
@@ -82,7 +87,7 @@ export const logoutUser = async () => {
 };
 
 export const listenForAuthChanges = (callback) => {
-  if (!isFirebaseConfigured) {
+  if (!isFirebaseConfigured || !auth) {
     callback(null);
     return () => {};
   }

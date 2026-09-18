@@ -25,9 +25,15 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
 };
 
-// Prevent re-initialization in HMR / dev mode
-export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Only initialize Firebase if configured with non-empty variables.
+// This prevents auth/invalid-api-key errors during automated unit testing & CI/CD.
+export const app = isFirebaseConfigured
+  ? getApps().length > 0
+    ? getApp()
+    : initializeApp(firebaseConfig)
+  : null;
+
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
 
 export default app;
