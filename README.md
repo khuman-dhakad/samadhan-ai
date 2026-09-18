@@ -36,10 +36,7 @@ An AI-powered civic issue reporting and triage platform that enables citizens to
 
 Municipal authorities struggle with decentralized, poorly categorized, and unverified citizen complaint channels. **Samadhan AI** bridges this gap:
 
-1. **Citizens** upload a photograph of a civic defect (e.g. potholes, garbage overflow, broken streetlights, water pipeline bursts) and pin the location on an interactive OpenStreetMap canvas.
-2. **Server-Side Gemini 2.5 Flash** performs multimodal zero-shot analysis, classifying the defect category, severity, confidence level, public safety risk, and assigning the responsible municipal department.
-3. **Cloud Firestore** stores the structured report, stripping citizen personally identifiable information (PII) from public feeds while isolating private contact info in secure author subcollections.
-4. **Community Map & Triage Dashboard** allows the public to track localized defect hotspots and equips verified municipal officers with real-time status transitions (`Reported` → `Under Review` → `In Progress` → `Resolved`).
+Citizens upload an image and select the location on a live Leaflet map. **Google Gemini AI** automatically categorizes the issue, calculates severity, risk level, confidence score, and assigns the responsible municipal department (Public Works, Sanitation, Water Supply, Electricity Board). Reports are persisted in Cloud Firestore for transparent community tracking and administrative resolution.
 
 ---
 
