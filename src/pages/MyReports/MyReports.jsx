@@ -1,19 +1,8 @@
-import { useEffect, useState } from "react";
 import MyReports from "../../components/MyReports/MyReports";
-import { listenForAuthChanges } from "../../services/firebase/authService";
+import { useAuth } from "../../context/useAuth";
 
 function MyReportsPage() {
-    const [user, setUser] = useState(null);
-    const [authLoaded, setAuthLoaded] = useState(false);
-
-    useEffect(() => {
-        const unsubscribe = listenForAuthChanges((currentUser) => {
-            setUser(currentUser);
-            setAuthLoaded(true);
-        });
-
-        return () => unsubscribe();
-    }, []);
+    const { user, authLoaded } = useAuth();
 
     return (
         <main className="min-h-screen bg-slate-950 text-white px-4 sm:px-6 lg:px-8 py-8">

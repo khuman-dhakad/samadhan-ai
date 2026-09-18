@@ -6,18 +6,14 @@ import { saveIssueReport } from "../../services/firebase/reportService";
 import { uploadImage } from "../../services/cloudinary/cloudinaryService";
 import MapView from "../../components/MapView/MapView";
 import { getLocationName } from "../../services/map/locationService";
-import {
-    signInWithGoogle,
-    logoutUser,
-    listenForAuthChanges,
-} from "../../services/firebase/authService";
+import { useAuth } from "../../context/useAuth";
 
 function ReportIssue() {
+    const { user, loginWithGoogle, logout } = useAuth();
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
     const [selectedLocation, setSelectedLocation] = useState(null);
     const [analysis, setAnalysis] = useState(null);
-    const [user, setUser] = useState(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionStep, setSubmissionStep] = useState("");
@@ -25,14 +21,6 @@ function ReportIssue() {
     const [submittedReportId, setSubmittedReportId] = useState(null);
 
     const fileInputRef = useRef(null);
-
-    useEffect(() => {
-        const unsubscribe = listenForAuthChanges((currentUser) => {
-            setUser(currentUser);
-        });
-
-        return () => unsubscribe();
-    }, []);
 
     // Clean up Object URL on unmount or file change to prevent memory leaks
     useEffect(() => {
@@ -80,7 +68,7 @@ function ReportIssue() {
 
     const handleGoogleLogin = async () => {
         try {
-            await signInWithGoogle();
+            await loginWithGoogle();
         } catch (err) {
             console.error("Login error", err);
         }
@@ -88,7 +76,7 @@ function ReportIssue() {
 
     const handleLogout = async () => {
         try {
-            await logoutUser();
+            await logout();
         } catch (err) {
             console.error("Logout error", err);
         }

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getUserReports } from "../../services/firebase/reportService";
-import { signInWithGoogle } from "../../services/firebase/authService";
+import { useAuth } from "../../context/useAuth";
 
-function MyReports({ user, authLoaded, refresh }) {
+function MyReports({ refresh }) {
+    const { user, authLoaded, isSigningIn, loginWithGoogle } = useAuth();
     const [reports, setReports] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [signingIn, setSigningIn] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!user?.uid) {
@@ -14,6 +14,9 @@ function MyReports({ user, authLoaded, refresh }) {
         }
 
         let isMounted = true;
+        Promise.resolve().then(() => {
+            if (isMounted) setLoading(true);
+        });
 
         getUserReports(user.uid)
             .then((data) => {
@@ -35,13 +38,10 @@ function MyReports({ user, authLoaded, refresh }) {
     }, [user?.uid, refresh]);
 
     const handleGoogleSignIn = async () => {
-        setSigningIn(true);
         try {
-            await signInWithGoogle();
+            await loginWithGoogle();
         } catch (err) {
             console.error("Sign in failed:", err);
-        } finally {
-            setSigningIn(false);
         }
     };
 
@@ -100,10 +100,10 @@ function MyReports({ user, authLoaded, refresh }) {
                 </p>
                 <button
                     onClick={handleGoogleSignIn}
-                    disabled={signingIn}
+                    disabled={isSigningIn}
                     className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-sm px-6 py-3 rounded-xl shadow transition disabled:opacity-50"
                 >
-                    {signingIn ? "Signing In..." : "Sign In with Google"}
+                    {isSigningIn ? "Signing In..." : "Sign In with Google"}
                 </button>
             </div>
         );
@@ -119,8 +119,10 @@ function MyReports({ user, authLoaded, refresh }) {
         );
     }
 
+    const displayedReports = user?.uid ? reports : [];
+
     // State 4: User logged in but has no reports
-    if (reports.length === 0) {
+    if (displayedReports.length === 0) {
         return (
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-4 shadow-xl">
                 <div className="w-16 h-16 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center text-3xl mx-auto">
@@ -147,7 +149,7 @@ function MyReports({ user, authLoaded, refresh }) {
         <div className="space-y-4">
             <div className="flex justify-between items-center px-1">
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Total Submissions ({reports.length})
+                    Total Submissions ({displayedReports.length})
                 </p>
                 <Link
                     to="/report"
@@ -158,7 +160,7 @@ function MyReports({ user, authLoaded, refresh }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {reports.map((report) => (
+                {displayedReports.map((report) => (
                     <div
                         key={report.id}
                         className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition flex flex-col justify-between shadow-lg"
