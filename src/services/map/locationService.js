@@ -8,13 +8,28 @@ const geocodeCache = new Map();
  * @returns {boolean}
  */
 export function isValidCoordinate(latitude, longitude) {
+  if (
+    latitude === null ||
+    latitude === undefined ||
+    longitude === null ||
+    longitude === undefined
+  ) {
+    return false;
+  }
+
+  if (typeof latitude === "string" && latitude.trim() === "") return false;
+  if (typeof longitude === "string" && longitude.trim() === "") return false;
+
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+
   return (
-    typeof latitude === "number" &&
-    typeof longitude === "number" &&
-    !isNaN(latitude) &&
-    !isNaN(longitude) &&
-    latitude >= -90 &&
-    latitude <= 90 &&
+    typeof lat === "number" &&
+    typeof lng === "number" &&
+    !isNaN(lat) &&
+    !isNaN(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
     longitude >= -180 &&
     longitude <= 180
   );
