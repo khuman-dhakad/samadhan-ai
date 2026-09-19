@@ -28,9 +28,20 @@ function Home() {
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none"></div>
 
                 <div className="max-w-5xl mx-auto text-center relative z-10 space-y-6">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
-                        <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
-                        Next-Gen Civic Governance Platform
+                    <div className="flex flex-wrap items-center justify-center gap-2.5">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide">
+                            <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                            Next-Gen Civic Governance Platform
+                        </div>
+                        <a
+                            href="https://samadhan-ai-rho.vercel.app"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold tracking-wide hover:bg-emerald-500/20 transition"
+                        >
+                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>Live on Vercel ↗</span>
+                        </a>
                     </div>
 
                     <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400 leading-tight">
@@ -71,22 +82,22 @@ function Home() {
 
                 {/* Live Stats Counter Strip */}
                 <div className="max-w-5xl mx-auto mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center">
+                    <div className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 text-center transform hover:-translate-y-1 transition duration-200 shadow-md">
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Reports</p>
                         <p className="text-3xl font-extrabold text-blue-400 mt-1">{stats.total}</p>
                     </div>
 
-                    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center">
+                    <div className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 text-center transform hover:-translate-y-1 transition duration-200 shadow-md">
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">In Progress</p>
                         <p className="text-3xl font-extrabold text-cyan-400 mt-1">{stats.inProgress}</p>
                     </div>
 
-                    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center">
+                    <div className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 text-center transform hover:-translate-y-1 transition duration-200 shadow-md">
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Under Review</p>
                         <p className="text-3xl font-extrabold text-amber-400 mt-1">{stats.underReview}</p>
                     </div>
 
-                    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center">
+                    <div className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 text-center transform hover:-translate-y-1 transition duration-200 shadow-md">
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Resolved</p>
                         <p className="text-3xl font-extrabold text-emerald-400 mt-1">{stats.resolved}</p>
                     </div>
@@ -150,7 +161,7 @@ function Home() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5">
+                        <div className="bg-slate-900 border border-slate-800/80 hover:border-blue-500/40 rounded-xl p-5 hover:-translate-y-1 transition duration-200 shadow-md">
                             <span className="text-3xl mb-3 block">🤖</span>
                             <h4 className="font-bold text-base text-slate-200 mb-1">Multimodal AI</h4>
                             <p className="text-xs text-slate-400 leading-relaxed">
@@ -158,7 +169,7 @@ function Home() {
                             </p>
                         </div>
 
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5">
+                        <div className="bg-slate-900 border border-slate-800/80 hover:border-cyan-500/40 rounded-xl p-5 hover:-translate-y-1 transition duration-200 shadow-md">
                             <span className="text-3xl mb-3 block">🗺️</span>
                             <h4 className="font-bold text-base text-slate-200 mb-1">Hyperlocal Map</h4>
                             <p className="text-xs text-slate-400 leading-relaxed">
@@ -166,7 +177,7 @@ function Home() {
                             </p>
                         </div>
 
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5">
+                        <div className="bg-slate-900 border border-slate-800/80 hover:border-amber-500/40 rounded-xl p-5 hover:-translate-y-1 transition duration-200 shadow-md">
                             <span className="text-3xl mb-3 block">⚡</span>
                             <h4 className="font-bold text-base text-slate-200 mb-1">Cloud Image Pipeline</h4>
                             <p className="text-xs text-slate-400 leading-relaxed">
@@ -174,7 +185,7 @@ function Home() {
                             </p>
                         </div>
 
-                        <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5">
+                        <div className="bg-slate-900 border border-slate-800/80 hover:border-emerald-500/40 rounded-xl p-5 hover:-translate-y-1 transition duration-200 shadow-md">
                             <span className="text-3xl mb-3 block">🛡️</span>
                             <h4 className="font-bold text-base text-slate-200 mb-1">Admin Command Center</h4>
                             <p className="text-xs text-slate-400 leading-relaxed">
