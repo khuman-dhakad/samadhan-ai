@@ -43,9 +43,9 @@ If you are evaluating this project for a Software Engineering role, here is a co
 - [Security & RBAC Model](#-security--rbac-model)
 - [API Reference](#-api-reference)
 - [Local Setup & Development](#-local-setup--development)
+- [Admin Privileges & Reviewer Testing Guide](#-admin-privileges--reviewer-testing-guide)
 - [Environment Variables](#-environment-variables)
 - [Firebase & Firestore Setup](#-firebase--firestore-setup)
-- [Admin Custom Claim Configuration](#-admin-custom-claim-configuration)
 - [Vercel Deployment](#-vercel-deployment)
 - [Testing & Quality Assurance](#-testing--quality-assurance)
 - [Engineering Highlights](#-engineering-highlights)
@@ -243,9 +243,36 @@ The application will start at `http://localhost:5173`. Vite dev-middleware autom
 
 ### 5. Run Quality Checks
 ```bash
-npm run lint    # ESLint verification
-npm test        # Vitest automated test suite
+npm run lint    # ESLint verification (0 errors, 0 warnings)
+npm test        # Vitest automated test suite (30/30 passed)
 npm run build   # Production Vite compilation
+```
+
+---
+
+## 🧪 Admin Privileges & Reviewer Testing Guide
+
+Recruiters and code reviewers can inspect and verify the role-based access control (RBAC) behavior through two testing approaches:
+
+### Option A: Testing on the Live Production Deployment
+1. Visit the live Admin portal: [https://samadhan-ai-rho.vercel.app/admin](https://samadhan-ai-rho.vercel.app/admin).
+2. Click **Sign In with Google**.
+3. **Observation**: If your account has not been assigned municipal administrator claims, the UI gracefully presents an unauthorized access boundary with clear instructions, and Firestore rejects any unauthorized modification attempts.
+
+### Option B: Local Developer Mode Preview
+To review the full Administrator triage suite locally:
+1. In your local `.env`, set:
+   ```env
+   VITE_ADMIN_EMAILS=your-google-email@gmail.com
+   ```
+2. Start the app with `npm run dev`, sign in with that Google account, and you will immediately have access to review, filter, update status, and inspect issues.
+
+### Option C: Cryptographic Custom Claims (Production Standard)
+To grant true Firebase Admin Custom Claims (`{ admin: true }`) cryptographically:
+```bash
+# Provide service account credentials and execute the provisioning script
+export GOOGLE_APPLICATION_CREDENTIALS="./serviceAccountKey.json"
+node scripts/set-admin-claim.mjs your-email@gmail.com
 ```
 
 ---
