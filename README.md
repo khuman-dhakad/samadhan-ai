@@ -1,390 +1,175 @@
-# 🏛️ Samadhan AI — Hyperlocal Civic Intelligence Platform
+# Samadhan AI — Hyperlocal Community Problem Solver
 
-> **Production-grade civic issue reporting and triage platform powered by React 19, Serverless Gemini 2.5 Flash Multimodal Vision, and Firebase Custom Claims RBAC.**
+Samadhan AI helps residents report local civic problems with a photo and a map location. Gemini classifies the issue, Cloudinary stores the image, PostgreSQL tracks each report, and municipal administrators manage resolution using a protected Spring Security API.
 
-[![Live Production Demo](https://img.shields.io/badge/🚀_Live_Demo-samadhan--ai--rho.vercel.app-2ea44f?style=for-the-badge&logo=vercel&logoColor=white)](https://samadhan-ai-rho.vercel.app)
-[![CI Status](https://img.shields.io/badge/CI_Build-Passing_(30/30_Tests)-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)](https://github.com/khuman-dhakad/samadhan-ai/actions)
-[![React 19](https://img.shields.io/badge/React-19.2-61dafb?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Vite 8](https://img.shields.io/badge/Vite-8.0-646cff?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
-[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4.3-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-
----
-
-### 🌐 Quick Links
-- 🚀 **Live Production Application**: [https://samadhan-ai-rho.vercel.app](https://samadhan-ai-rho.vercel.app)
-- 📂 **GitHub Repository**: [https://github.com/khuman-dhakad/samadhan-ai](https://github.com/khuman-dhakad/samadhan-ai)
-- 🧪 **CI / CD Pipeline**: [GitHub Actions Workflow Runs](https://github.com/khuman-dhakad/samadhan-ai/actions) (Ubuntu Matrix: Node `20.x`, `22.x`)
-- 📜 **Security Rules**: [firestore.rules](./firestore.rules) (Cryptographic Admin Custom Claims & PII Sequestration)
-
----
-
-## 🎯 Recruiter & Technical Reviewer Summary
-
-If you are evaluating this project for a Software Engineering role, here is a concise overview of the core engineering decisions and production highlights:
-
-| Engineering Focus | Implementation | Measurable Outcome / Impact |
-|---|---|---|
-| **Serverless AI Architecture** | Migrated Google Gemini 2.5 Flash from browser client to Vercel Serverless Function (`api/analyze-issue.js`) | **Zero client secret exposure**; Reduced initial JS bundle by **~320 kB (-24%)**. |
-| **Enterprise RBAC** | Cryptographic Firebase Auth Custom Claims (`request.auth.token.admin == true`) verified in `firestore.rules` | Eliminated client-spoofable admin privileges; true backend authorization boundary. |
-| **Data Privacy & GDPR** | Stripped citizen PII from root `/issueReports/{id}` and sequestered author email to protected subcollections | Scrapers and public map consumers cannot harvest citizen contact emails. |
-| **State Optimization** | Centralized `AuthContext` eliminating fragmented `onAuthStateChanged` listeners across pages | Reduced Firebase Auth listeners from **4 down to 1**, eliminating cascading re-renders. |
-| **Media Pipeline Reliability** | Direct-to-CDN Cloudinary uploads with client-side byte & MIME validation (max 10MB) | Prevents corrupted uploads and protects against runaway cloud storage costs. |
-| **Geographic Proxying** | Serverless Nominatim reverse-geocoding proxy with custom `User-Agent` & in-memory caching | Complies with OpenStreetMap rate limits and prevents browser CORS blocks. |
-| **Test Automation & CI** | 30 comprehensive Vitest unit tests in GitHub Actions CI with headless Firebase mocks | **100% test pass rate**; reliable, green CI/CD runs without requiring cloud credentials. |
-
----
-
-## 📖 Table of Contents
-
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [System Architecture](#-system-architecture)
-- [Technology Stack](#-technology-stack)
-- [Security & RBAC Model](#-security--rbac-model)
-- [API Reference](#-api-reference)
-- [Local Setup & Development](#-local-setup--development)
-- [Admin Privileges & Reviewer Testing Guide](#-admin-privileges--reviewer-testing-guide)
-- [Environment Variables](#-environment-variables)
-- [Firebase & Firestore Setup](#-firebase--firestore-setup)
-- [Vercel Deployment](#-vercel-deployment)
-- [Testing & Quality Assurance](#-testing--quality-assurance)
-- [Engineering Highlights](#-engineering-highlights)
-- [Troubleshooting Guide](#-troubleshooting-guide)
-
----
-
-## 🔍 Overview
-
-Municipal authorities struggle with decentralized, poorly categorized, and unverified citizen complaint channels. **Samadhan AI** bridges this gap:
-
-Citizens upload an image and select the location on a live Leaflet map. **Google Gemini AI** automatically categorizes the issue, calculates severity, risk level, confidence score, and assigns the responsible municipal department (Public Works, Sanitation, Water Supply, Electricity Board). Reports are persisted in Cloud Firestore for transparent community tracking and administrative resolution.
-
----
-
-## ✨ Key Features
-
-- **Multimodal AI Issue Classification**: Analyzes infrastructure photographs using Google Gemini 2.5 Flash through server-side serverless functions without exposing API secrets in browser bundles.
-- **Hyperlocal Geotagging**: Interactive Leaflet map with reverse geocoding to human-readable street addresses via rate-limit compliant backend proxying.
-- **Community Hotspot Map**: Real-time visual tracker color-coded by urgency (`High`, `Medium`, `Low`) with instant client-side priority filtering.
-- **Centralized Authentication & RBAC**: Google OAuth with unified single-observer state management and cryptographic Firebase custom claims (`token.admin == true`) for administrative operations.
-- **PII Isolation & Data Privacy**: Public community map feeds strictly exclude citizen email addresses and phone numbers. Author contact details are sequestered in protected subcollections accessible only by the reporter or verified administrators.
-- **Cloud Media Pipeline**: Secure client-to-CDN image uploads via Cloudinary with client-side MIME and size validation (max 10MB).
-- **Personalized Tracking Portal**: Dedicated "My Reports" portal displaying real-time lifecycle status of citizen submissions.
-- **Administrative Command Center**: Comprehensive triage suite with full-resolution inspection lightbox, search, filter, status lifecycle transitions, and record deletion.
-- **Production Resilience**: Defensive AI JSON sanitization, submission race-condition guards, memory leak prevention via Object URL revocation, and React ErrorBoundary wrapper.
-
----
-
-## 🏗 System Architecture
+## Project structure
 
 ```text
-                                [ Citizen / User ]
-                                        │
-                         ┌──────────────┴──────────────┐
-                         ▼                             ▼
-                 [ Google OAuth ]             [ Guest Reporting ]
-                 (AuthContext.jsx)             (Anonymous UID)
-                         │                             │
-                         └──────────────┬──────────────┘
-                                        ▼
-               ┌─────────────────────────────────────────────────┐
-               │              React 19 SPA Frontend              │
-               │   (ReportIssue, CommunityMap, AdminDashboard)   │
-               └────────┬──────────────────────┬─────────────────┘
-                        │                      │
-       Image File (<=10MB)                     │ Base64 Image
-                        ▼                      ▼
-           [ Cloudinary Upload API ]    [ /api/analyze-issue ]
-           (HTTPS Unsigned Preset)      (Vercel Serverless / Node)
-                        │                      │
-                        │                      │ process.env.GEMINI_API_KEY
-                        │                      ▼
-                        │             [ Google Gemini 2.5 Flash ]
-                        │             (Multimodal Inference)
-                        │                      │
-                        │ CDN URL              │ Structured AI Schema
-                        └──────────────┬───────┘
-                                       ▼
-                     [ Reverse Geocoding Proxy ]
-                     (GET /api/geocode -> Nominatim)
-                                       │
-                                       ▼
-                       [ Cloud Firestore Database ]
-           ┌───────────────────────────┴───────────────────────────┐
-           ▼                                                       ▼
-   /issueReports/{id}                                    /issueReports/{id}/private/meta
-   (Public Schema: No PII,                               (Protected Subcollection:
-    category, coordinates, status,                        author email & metadata;
-    department, image, timestamp)                         Author & Admin read-only)
-           │                                                       │
-           ├───────────────────────────┬───────────────────────────┤
-           ▼                           ▼                           ▼
-    [ Community Map ]           [ My Reports ]            [ Admin Dashboard ]
-     Public Live Pins          Author's Tracker          RBAC Custom Claim Guard
+samadhan-ai/
+├── frontend/                 # HTML entry point, React, JavaScript, Tailwind, Vite
+│   ├── public/
+│   ├── screenshots/
+│   ├── src/
+│   ├── tests/
+│   ├── package.json
+│   └── vite.config.js
+├── backend/                  # Java 21 / Spring Boot API and PostgreSQL setup
+│   ├── src/main/java/
+│   ├── src/test/java/
+│   ├── pom.xml
+│   ├── Dockerfile
+│   └── compose.yaml
+├── .github/                  # GitHub Actions workflow definitions
+├── .gitignore
+└── README.md
 ```
 
----
+All application source and build configuration lives under `frontend/` or `backend/`. `.github/` stays at the repository root because GitHub requires workflow files at `.github/workflows/`.
 
-## 🛠 Technology Stack
+## Technology
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Frontend Framework** | React 19.2, Vite 8.0 | High-performance Single Page Application (SPA) |
-| **Styling** | Tailwind CSS v4.3 | Responsive utility-first design with native dark theme |
-| **Routing** | React Router DOM v7.1 | Declarative client-side routing with SPA rewrite support |
-| **Backend & Serverless**| Vercel Serverless Functions | Secure server-side proxying for Gemini AI & Geocoding |
-| **AI / Machine Learning**| Google Gen AI SDK (`@google/genai`) | Gemini 2.5 Flash multimodal vision inference |
-| **GIS & Mapping** | Leaflet 1.9, React Leaflet 5.0 | Interactive coordinate picker and clustered community maps |
-| **Geocoding** | OpenStreetMap Nominatim | Reverse geocoding via rate-limited backend proxy |
-| **Database** | Cloud Firestore | Real-time NoSQL storage with declarative security rules |
-| **Authentication** | Firebase Authentication | Google OAuth 2.0 with custom claims RBAC |
-| **Media Hosting** | Cloudinary REST API | Scalable image optimization and CDN delivery |
-| **Testing** | Vitest 5.0 | Automated unit testing for AI parsing, schemas, and RBAC |
-| **CI / CD** | GitHub Actions | Automated pipeline running `lint`, `test`, and `build` |
+- **Frontend:** React 19, Vite, Tailwind CSS, Leaflet / OpenStreetMap
+- **Backend:** Java 21, Spring Boot 3, Spring Security, JWT, Spring Data JPA
+- **Database:** PostgreSQL
+- **Integrations:** Google Gemini, Cloudinary, OpenStreetMap Nominatim
 
----
+The user interface remains a React application. Authentication, issue processing, persistence, and integrations run through the Java API; browser code contains no database or vendor API credentials.
 
-## 🔐 Security & RBAC Model
+## Features
 
-### 1. Server-Side AI Secret Isolation
-In development and production, `GEMINI_API_KEY` is loaded exclusively inside server environments (`/api/analyze-issue` and Vite dev server middleware). The client bundle contains **zero** references to Gemini secrets or `@google/genai` libraries, preventing browser extraction.
+- Anonymous or signed-in civic report submission with image, location, and AI classification.
+- Email/password accounts with BCrypt password hashing and signed JWT access tokens.
+- Private “My Reports” view for signed-in users and public issue map.
+- PostgreSQL report lifecycle: Reported, Under Review, In Progress, and Resolved.
+- Admin-only status changes and report deletion, enforced by Spring Security roles.
+- Server-side image upload to Cloudinary, Gemini vision analysis, and Nominatim reverse geocoding.
 
-### 2. Cryptographic Admin Authorization
-Client-side email checks (`VITE_ADMIN_EMAILS`) are used purely for local developer preview. The true security boundary is enforced at the database layer in [`firestore.rules`](./firestore.rules):
+## Architecture
 
-```firestore
-function isAdmin() {
-  return request.auth != null && request.auth.token.admin == true;
-}
-
-// Only verified administrators can alter report status or delete records
-allow update: if isAdmin();
-allow delete: if isAdmin();
+```text
+React / Leaflet ── REST + JWT ──> Spring Boot API (Java 21)
+                                      ├── Spring Security / JWT
+                                      ├── Spring Data JPA ──> PostgreSQL
+                                      ├── Gemini API
+                                      ├── Cloudinary
+                                      └── Nominatim
 ```
 
-Even if an attacker attempts manual REST/SDK mutations against Firestore, the operation will be rejected with `permission-denied` unless the user's cryptographically signed Firebase ID token contains `{ admin: true }`.
+Public API routes expose only public report fields; reporter email addresses are not returned in report payloads. User-specific report queries require authentication, and administrative mutations require the `ADMIN` role. The initial admin account is provisioned from server-only environment variables at startup; public registration always creates a regular user.
 
-### 3. PII Exclusion & Subcollection Isolation
-- **Public Collection** (`/issueReports/{id}`): Contains public fields only (`category`, `severity`, `priority`, `confidence`, `latitude`, `longitude`, `imageUrl`, `department`, `status`). Explicitly prohibits `userEmail` and `phoneNumber`.
-- **Private Subcollection** (`/issueReports/{id}/private/meta`): Stores author email. Readable only by the report creator (`request.auth.uid == userId`) or an admin (`request.auth.token.admin == true`).
+## Local development
 
----
+### Requirements
 
-## 📡 API Reference
+- Java 21
+- Maven 3.9+
+- Node.js 20+
+- Docker Desktop (for local PostgreSQL via Compose)
+- Gemini and Cloudinary credentials for AI classification and image uploads
 
-### 1. Issue Analysis
-- **Endpoint**: `POST /api/analyze-issue`
-- **Headers**: `Content-Type: application/json`
-- **Request Body**:
-  ```json
-  {
-    "image": "data:image/jpeg;base64,..."
-  }
-  ```
-- **Response** (`200 OK`):
-  ```json
-  {
-    "success": true,
-    "data": {
-      "category": "Pothole",
-      "severity": "High",
-      "confidence": 92,
-      "risk": "Vehicular damage and accident hazard",
-      "department": "Public Works Department",
-      "priority": "High"
-    }
-  }
-  ```
-- **Error Codes**:
-  - `400 Bad Request`: Missing or malformed image string.
-  - `405 Method Not Allowed`: Request method is not POST.
-  - `413 Payload Too Large`: Base64 payload exceeds 10MB limit.
+### 1. Configure the API
 
-### 2. Reverse Geocoding Proxy
-- **Endpoint**: `GET /api/geocode?lat={latitude}&lng={longitude}`
-- **Response** (`200 OK`):
-  ```json
-  {
-    "success": true,
-    "locationName": "Main Street, Ward 12, Bhopal, Madhya Pradesh, India"
-  }
-  ```
-- **Error Codes**:
-  - `400 Bad Request`: Latitude or longitude missing or outside `-90..90` / `-180..180`.
-  - `405 Method Not Allowed`: Request method is not GET.
+The real backend configuration file is `backend/.env`. It already contains a securely generated JWT signing key. Edit that file to set your Gemini and Cloudinary credentials, and optionally set the initial admin email/password before starting the API. Do not share or commit either `.env` file.
 
----
+Set `GEMINI_API_KEY` and all three Cloudinary credentials for the full report workflow. Backend credentials belong only in `backend/.env` or the backend hosting provider’s secret manager; never prefix them with `VITE_`.
 
-## 💻 Local Setup & Development
+### 2. Start PostgreSQL and the Spring API
 
-### 1. Prerequisites
-- Node.js `v20.x` or `v22.x`
-- npm `v10.x` or higher
+```powershell
+docker compose -f backend/compose.yaml up --build
+```
 
-### 2. Clone & Install
-```bash
-git clone https://github.com/khuman-dhakad/samadhan-ai.git
-cd samadhan-ai
+The API starts at `http://localhost:8080` after PostgreSQL is healthy. Check it with:
+
+```powershell
+Invoke-RestMethod http://localhost:8080/api/health
+```
+
+Alternatively, start PostgreSQL separately and run the backend from `backend/`:
+
+```powershell
+Set-Location backend
+mvn spring-boot:run
+```
+
+Direct Maven runs use environment variables from the current shell/IDE; unlike Docker Compose, Maven does not automatically read `backend/.env`. Spring Boot creates/updates the local schema through JPA. For production, use a managed PostgreSQL database and configure the connection with `DATABASE_URL`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD`.
+
+### 3. Start the React frontend
+
+The frontend configuration file is `frontend/.env`; its `VITE_API_URL` can remain empty for local Vite development, which proxies requests to the backend.
+
+```powershell
+Set-Location frontend
 npm ci
-```
-
-### 3. Configure Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Populate the values in `.env` (refer to the [Environment Variables](#-environment-variables) section below).
-
-### 4. Run Development Server
-```bash
 npm run dev
 ```
-The application will start at `http://localhost:5173`. Vite dev-middleware automatically serves `/api/analyze-issue` and `/api/geocode` using your local `GEMINI_API_KEY`.
 
-### 5. Run Quality Checks
-```bash
-npm run lint    # ESLint verification (0 errors, 0 warnings)
-npm test        # Vitest automated test suite (30/30 passed)
-npm run build   # Production Vite compilation
-```
+Vite proxies `/api` requests to `http://localhost:8080`. The frontend is available at `http://localhost:5173`.
 
----
+### 4. Checks
 
-## 🧪 Admin Privileges & Reviewer Testing Guide
-
-Recruiters and code reviewers can inspect and verify the role-based access control (RBAC) behavior through two testing approaches:
-
-### Option A: Testing on the Live Production Deployment
-1. Visit the live Admin portal: [https://samadhan-ai-rho.vercel.app/admin](https://samadhan-ai-rho.vercel.app/admin).
-2. Click **Sign In with Google**.
-3. **Observation**: If your account has not been assigned municipal administrator claims, the UI gracefully presents an unauthorized access boundary with clear instructions, and Firestore rejects any unauthorized modification attempts.
-
-### Option B: Local Developer Mode Preview
-To review the full Administrator triage suite locally:
-1. In your local `.env`, set:
-   ```env
-   VITE_ADMIN_EMAILS=your-google-email@gmail.com
-   ```
-2. Start the app with `npm run dev`, sign in with that Google account, and you will immediately have access to review, filter, update status, and inspect issues.
-
-### Option C: Cryptographic Custom Claims (Production Standard)
-To grant true Firebase Admin Custom Claims (`{ admin: true }`) cryptographically:
-```bash
-# Provide service account credentials and execute the provisioning script
-export GOOGLE_APPLICATION_CREDENTIALS="./serviceAccountKey.json"
-node scripts/set-admin-claim.mjs your-email@gmail.com
-```
-
----
-
-## 🔑 Environment Variables
-
-| Variable | Scope | Required | Description |
-|---|---|---|---|
-| `GEMINI_API_KEY` | Server-Side | Yes | Google Gemini API key for multimodal issue analysis. |
-| `VITE_FIREBASE_API_KEY` | Client-Side | Yes | Firebase Web API key. |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Client-Side | Yes | Firebase Auth domain (`project.firebaseapp.com`). |
-| `VITE_FIREBASE_PROJECT_ID` | Client-Side | Yes | Firebase Project ID. |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Client-Side | Yes | Firebase Storage bucket identifier. |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Client-Side | Yes | Firebase Cloud Messaging sender ID. |
-| `VITE_FIREBASE_APP_ID` | Client-Side | Yes | Firebase Web Application ID. |
-| `VITE_CLOUDINARY_CLOUD_NAME` | Client-Side | Yes | Cloudinary Cloud Name for media storage. |
-| `VITE_CLOUDINARY_UPLOAD_PRESET` | Client-Side | Yes | Unsigned upload preset configured in Cloudinary. |
-| `VITE_ADMIN_EMAILS` | Client-Side | Optional | Comma-separated emails for local development UI preview. |
-
----
-
-## 🔥 Firebase & Firestore Setup
-
-### 1. Enable Firebase Authentication
-1. Go to [Firebase Console](https://console.firebase.google.com/) -> **Authentication** -> **Sign-in method**.
-2. Enable the **Google** provider.
-3. In **Settings** -> **Authorized domains**, ensure your deployment domains are listed (e.g., `localhost`, `samadhan-ai-rho.vercel.app`).
-
-### 2. Deploy Firestore Security Rules
-Install Firebase CLI and deploy the rules:
-```bash
-npm install -g firebase-tools
-firebase login
-firebase use your-project-id
-firebase deploy --only firestore:rules
-```
-
----
-
-## 👑 Admin Custom Claim Configuration
-
-Administrative actions (status updates and report deletion) require the `admin: true` custom claim.
-
-### Using the Provisioning Script:
-1. Generate a Service Account Key in Firebase Console (**Project Settings** -> **Service accounts** -> **Generate new private key**).
-2. Save it locally (e.g. `serviceAccountKey.json`).
-3. Set the environment variable and run the provisioning utility:
-   ```bash
-   # Linux/macOS
-   export GOOGLE_APPLICATION_CREDENTIALS="./serviceAccountKey.json"
-   node scripts/set-admin-claim.mjs your-email@example.com
-
-   # Windows PowerShell
-   $env:GOOGLE_APPLICATION_CREDENTIALS=".\serviceAccountKey.json"
-   node scripts/set-admin-claim.mjs your-email@example.com
-   ```
-4. Sign out and sign back in to refresh the user's ID token.
-
----
-
-## 🚀 Vercel Deployment
-
-1. Push your code to GitHub.
-2. Import the repository in [Vercel](https://vercel.com/).
-3. Configure the Project Environment Variables in Vercel Dashboard:
-   - `GEMINI_API_KEY` (Serverless secret)
-   - All `VITE_*` variables listed in `.env.example`.
-4. Deploy. Vercel automatically deploys:
-   - Client Single Page Application from `dist/`
-   - Serverless Functions from `api/analyze-issue.js` and `api/geocode.js`.
-5. Direct navigation to `/`, `/report`, `/map`, `/my-reports`, and `/admin` works out-of-the-box via [`vercel.json`](./vercel.json).
-
----
-
-## 🧪 Testing & Quality Assurance
-
-Automated unit tests are implemented using **Vitest** in the `tests/` directory:
-
-```bash
+```powershell
+Set-Location frontend
+npm run lint
 npm test
+npm run build
 ```
 
-### Coverage Areas:
-- **`tests/geminiService.test.js`**: Markdown code-fence stripping, truncated JSON recovery, fallback generation, priority and severity normalization.
-- **`tests/validation.test.js`**: Coordinate boundary validation (`-90..90`, `-180..180`), file size limits (<= 10MB), MIME verification, and PII leak detection.
-- **`tests/authHelper.test.js`**: Token custom claims parsing, admin state determination, and user-facing error formatting.
-- **`tests/apiRoutes.test.js`**: HTTP method verification, oversized payload rejection (413), bad request validation (400), and rate-limit fallbacks.
+Run frontend checks from `frontend/`. Run backend tests and package the API from `backend/`:
 
----
+```powershell
+mvn test
+mvn package
+```
 
-## 💡 Engineering Highlights
+## REST API
 
-- **Bundle Optimization**: Stripped `@google/genai` from client-side bundles, reducing initial client JavaScript bundle size by **~320 kB** (~24% reduction).
-- **Zero Duplicate Auth Listeners**: Centralized authentication into `AuthContext`, reducing Firebase Auth listeners across Navbar, ReportIssue, MyReports, and AdminDashboard from **4 down to 1**.
-- **Defense in Depth**: PII isolation in Firestore rules paired with client-side payload sanitation ensures citizen email addresses can never be leaked to public map scrapers.
-- **Resilient Fallback Design**: Automated heuristics ensure that temporary AI API outages or rate limits degrade gracefully into structured municipal triage tickets rather than terminating user workflow.
+| Method | Route | Access | Purpose |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Public | Create a standard user account and receive a JWT |
+| `POST` | `/api/auth/login` | Public | Authenticate and receive a JWT |
+| `GET` | `/api/auth/me` | Signed in | Return the current account and role |
+| `GET` | `/api/reports` | Public | List public report data |
+| `GET` | `/api/reports/statistics` | Public | Report status counts |
+| `GET` | `/api/reports/mine` | Signed in | List reports submitted by the current account |
+| `POST` | `/api/reports` | Public / optional JWT | Create an issue report |
+| `PATCH` | `/api/reports/{id}/status` | Admin | Update a report status |
+| `DELETE` | `/api/reports/{id}` | Admin | Delete a report |
+| `POST` | `/api/ai/analyze-issue` | Public | Analyze a base64 image using Gemini |
+| `POST` | `/api/images` | Public | Upload an image to Cloudinary (`multipart/form-data`, field `file`) |
+| `GET` | `/api/geocode?lat={lat}&lng={lng}` | Public | Reverse geocode coordinates |
+| `GET` | `/api/health` | Public | API liveness check |
 
----
+Send authenticated requests with `Authorization: Bearer <token>`. Report and admin actions are re-checked on the server; client-side role state is only for interface display.
 
-## 🛠 Troubleshooting Guide
+## Configuration reference
 
-| Problem | Cause | Resolution |
+### Frontend
+
+| Variable | Required | Description |
 |---|---|---|
-| **"Firebase is not configured"** | Missing `VITE_FIREBASE_*` variables in `.env`. | Verify that all 6 Firebase variables are present in `.env` and restart the Vite server. |
-| **"Sign-in popup was blocked"** | Browser popup blocker prevented OAuth window. | Allow popups for `localhost` or your domain in your browser settings. |
-| **"This domain is not authorized"** | Current host is not in Firebase Auth whitelist. | Add your domain to Firebase Console -> Authentication -> Settings -> Authorized domains. |
-| **"Permission denied by Firestore"** | Non-admin user attempted status update/deletion. | Assign the admin custom claim using `scripts/set-admin-claim.mjs`. |
-| **"Cloudinary is not configured"** | Missing Cloudinary cloud name or unsigned preset. | Configure `VITE_CLOUDINARY_CLOUD_NAME` and `VITE_CLOUDINARY_UPLOAD_PRESET` in `.env`. |
-| **"AI analysis timed out"** | Network latency or rate-limiting on Gemini API. | The system automatically applies an offline fallback ticket to avoid losing citizen report data. |
+| `VITE_API_URL` in `frontend/.env` | No | Base URL for the Spring API; empty/same-origin by default |
 
----
+### Backend
 
-## 📄 License
+| Variable | Required | Description |
+|---|---|---|
+| `JWT_SECRET` in `backend/.env` | Yes | Base64-encoded signing key with at least 256 bits |
+| `DATABASE_URL` | No | JDBC URL; local PostgreSQL default is `jdbc:postgresql://localhost:5432/samadhan` |
+| `DATABASE_USERNAME` / `DATABASE_PASSWORD` | No | Database credentials |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | No | Initial admin account; password must be 12+ characters and no more than 72 UTF-8 bytes |
+| `GEMINI_API_KEY` | Needed for analysis | Google AI API key |
+| `GEMINI_MODEL` | No | Gemini model; defaults to `gemini-2.5-flash` |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Needed for uploads | Private Cloudinary credentials |
+| `CORS_ALLOWED_ORIGINS` | No | Comma-separated browser origins allowed by the API |
+| `PORT` | No | API port; defaults to `8080` |
 
-This project is licensed under the [MIT License](LICENSE).
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` before the first API startup if the deployment needs an admin account. The API creates that account once; public registration never grants the admin role. Configure a new database or perform a controlled administrative migration before changing the provisioned admin identity.
+
+## Deployment
+
+Deploy the React `dist/` bundle to any static host and deploy the `backend/` Spring Boot container/JAR to a Java-capable host. Provision PostgreSQL separately, configure the backend variables in the host’s secret manager, set `VITE_API_URL` to the API’s HTTPS base URL when building the frontend, and allow the frontend origin in `CORS_ALLOWED_ORIGINS`. Vercel can host the static frontend; the Java API must be deployed as a separate service.
+
+## Data migration note
+
+The Java backend starts with a new PostgreSQL database. Existing Firebase users and issue reports are not copied automatically; export and migrate them separately before retiring the former Firebase deployment.
