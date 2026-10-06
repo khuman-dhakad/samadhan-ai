@@ -18,6 +18,7 @@ function ReportIssue() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionStep, setSubmissionStep] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [analysisWarning, setAnalysisWarning] = useState("");
     const [submittedReportId, setSubmittedReportId] = useState(null);
 
     const fileInputRef = useRef(null);
@@ -34,6 +35,7 @@ function ReportIssue() {
 
     const handleImageChange = (event) => {
         setErrorMessage("");
+        setAnalysisWarning("");
         const file = event.target.files?.[0];
 
         if (!file) return;
@@ -104,6 +106,7 @@ function ReportIssue() {
         isSubmittingRef.current = true;
         setIsSubmitting(true);
         setAnalysis(null);
+        setAnalysisWarning("");
 
         try {
             // Step 1: Upload image to Cloudinary CDN
@@ -113,8 +116,22 @@ function ReportIssue() {
             // Step 2: Convert to base64 and analyze with Gemini AI
             setSubmissionStep("2/4 Analyzing issue with Google Gemini AI...");
             const base64Image = await fileToBase64(selectedImage);
-            const rawAiResult = await analyzeCommunityIssue(base64Image);
-            const parsedData = sanitizeAndParseGeminiResponse(rawAiResult);
+            let parsedData;
+            try {
+                const rawAiResult = await analyzeCommunityIssue(base64Image);
+                parsedData = sanitizeAndParseGeminiResponse(rawAiResult);
+            } catch (aiError) {
+                console.error("AI analysis unavailable; continuing report submission:", aiError);
+                parsedData = {
+                    category: "Community Issue - Needs Review",
+                    severity: "Medium",
+                    priority: "Medium",
+                    confidence: 0,
+                    risk: "Automated analysis was unavailable; please verify this report manually.",
+                    department: "Municipal Corporation",
+                };
+                setAnalysisWarning(`AI analysis was unavailable (${aiError.message}). The report was saved for manual review.`);
+            }
             setAnalysis(parsedData);
 
             // Step 3: Reverse Geocode location
@@ -157,6 +174,7 @@ function ReportIssue() {
         setAnalysis(null);
         setSubmittedReportId(null);
         setErrorMessage("");
+        setAnalysisWarning("");
     };
 
     return (
@@ -213,8 +231,15 @@ function ReportIssue() {
                             Issue Reported Successfully!
                         </h2>
                         <p className="text-slate-300 text-sm max-w-md mx-auto">
-                            Your civic report has been verified by Gemini AI, geotagged, and submitted for municipal resolution.
+                            {analysisWarning
+                                ? "Your report was submitted for municipal resolution and needs manual classification."
+                                : "Your civic report was analyzed, geotagged, and submitted for municipal resolution."}
                         </p>
+                        {analysisWarning && (
+                            <p className="mx-auto max-w-lg rounded-lg border border-amber-500/40 bg-amber-950/40 p-3 text-left text-xs text-amber-200" role="status">
+                                {analysisWarning}
+                            </p>
+                        )}
 
                         {analysis && (
                             <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 text-left max-w-lg mx-auto text-xs space-y-1.5">
@@ -305,7 +330,7 @@ function ReportIssue() {
                                     <input
                                         ref={fileInputRef}
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
                                         onChange={handleImageChange}
                                         className="hidden"
                                         aria-label="Upload issue image"

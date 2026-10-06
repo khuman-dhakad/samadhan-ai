@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getUserReports } from "../../services/reports/reportService";
+import { resolveApiUrl } from "../../services/api/apiClient";
 import { useAuth } from "../../context/useAuth";
 
 function MyReports({ refresh }) {
@@ -161,7 +162,7 @@ function MyReports({ refresh }) {
                             {report.imageUrl && (
                                 <div className="relative w-full h-48 rounded-xl overflow-hidden mb-4 bg-slate-950 border border-slate-800">
                                     <img
-                                        src={report.imageUrl}
+                                        src={resolveApiUrl(report.imageUrl)}
                                         alt={report.category || "Issue photo"}
                                         className="w-full h-full object-cover"
                                         loading="lazy"

@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:samadhan-test;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+app:
+  jwt:
+    secret: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+  gemini:
+    api-key: ""
+  cloudinary:
+    cloud-name: ""
+    api-key: ""
+    api-secret: ""

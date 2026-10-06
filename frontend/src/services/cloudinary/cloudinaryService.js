@@ -1,4 +1,4 @@
-import { apiRequest } from "../api/apiClient";
+import { apiRequest, resolveApiUrl } from "../api/apiClient";
 
 const ALLOWED_IMAGE_TYPES = new Set([
     "image/jpeg",
@@ -25,6 +25,6 @@ export async function uploadImage(file) {
     const formData = new FormData();
     formData.append("file", file);
     const result = await apiRequest("/api/images", { method: "POST", body: formData });
-    if (!result?.secureUrl) throw new Error("Image service did not return an image URL");
-    return result.secureUrl;
+    if (!result?.imageUrl) throw new Error("Image service did not return an image URL");
+    return resolveApiUrl(result.imageUrl);
 }

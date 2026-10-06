@@ -9,6 +9,7 @@ import {
 } from "react-leaflet";
 
 import { getAllReports } from "../../services/reports/reportService";
+import { resolveApiUrl } from "../../services/api/apiClient";
 
 import redMarker from "../../assets/markers/red-marker.png";
 import yellowMarker from "../../assets/markers/yellow-marker.png";
@@ -202,7 +203,7 @@ function MapView({
 
                                             {report.imageUrl && (
                                                 <img
-                                                    src={report.imageUrl}
+                                                    src={resolveApiUrl(report.imageUrl)}
                                                     alt={report.category || "Issue photo"}
                                                     className="w-full h-24 object-cover rounded mt-2 border border-slate-200"
                                                     loading="lazy"

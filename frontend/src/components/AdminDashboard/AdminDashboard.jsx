@@ -6,6 +6,7 @@ import {
     deleteReport,
 } from "../../services/reports/reportService";
 import { useAuth } from "../../context/useAuth";
+import { resolveApiUrl } from "../../services/api/apiClient";
 
 function AdminDashboard() {
     const {
@@ -324,11 +325,11 @@ function AdminDashboard() {
                                         <td className="p-3.5">
                                             {report.imageUrl ? (
                                                 <img
-                                                    src={report.imageUrl}
+                                                    src={resolveApiUrl(report.imageUrl)}
                                                     alt={report.category || "Issue"}
                                                     className="w-14 h-14 object-cover rounded-lg cursor-pointer hover:ring-2 hover:ring-blue-500 transition shadow"
                                                     onClick={() => {
-                                                        setPreviewImage(report.imageUrl);
+                                                        setPreviewImage(resolveApiUrl(report.imageUrl));
                                                         setIsPreviewOpen(true);
                                                     }}
                                                     loading="lazy"
