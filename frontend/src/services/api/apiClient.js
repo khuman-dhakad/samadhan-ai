@@ -2,6 +2,12 @@ const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 const TOKEN_KEY = "samadhan_access_token";
 const USER_KEY = "samadhan_current_user";
 
+export function resolveApiUrl(resourceUrl) {
+    if (!resourceUrl || !resourceUrl.startsWith("/")) return resourceUrl;
+    const baseUrl = API_BASE_URL || window.location.origin;
+    return new URL(resourceUrl, baseUrl).toString();
+}
+
 export function getAccessToken() {
     return localStorage.getItem(TOKEN_KEY);
 }
@@ -38,7 +44,15 @@ export async function apiRequest(path, options = {}) {
         headers.set("Content-Type", "application/json");
     }
 
-    const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+    let response;
+    try {
+        response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+    } catch (error) {
+        if (error.name === "AbortError") throw error;
+        throw new Error("Cannot reach the Samadhan API. Start the backend and PostgreSQL, then try again.", {
+            cause: error,
+        });
+    }
     const responseText = await response.text();
     let payload = null;
     if (responseText) {

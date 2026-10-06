@@ -42,7 +42,7 @@ The user interface remains a React application. Authentication, issue processing
 - Private “My Reports” view for signed-in users and public issue map.
 - PostgreSQL report lifecycle: Reported, Under Review, In Progress, and Resolved.
 - Admin-only status changes and report deletion, enforced by Spring Security roles.
-- Server-side image upload to Cloudinary, Gemini vision analysis, and Nominatim reverse geocoding.
+- Server-side image upload to Cloudinary (with persistent local storage fallback), Gemini vision analysis, and Nominatim reverse geocoding.
 
 ## Architecture
 
@@ -72,6 +72,7 @@ Public API routes expose only public report fields; reporter email addresses are
 The real backend configuration file is `backend/.env`. It already contains a securely generated JWT signing key. Edit that file to set your Gemini and Cloudinary credentials, and optionally set the initial admin email/password before starting the API. Do not share or commit either `.env` file.
 
 Set `GEMINI_API_KEY` and all three Cloudinary credentials for the full report workflow. Backend credentials belong only in `backend/.env` or the backend hosting provider’s secret manager; never prefix them with `VITE_`.
+Cloudinary credentials are optional for local use: without them or if Cloudinary is unavailable, images are validated and saved to the persistent `samadhan-uploads` Docker volume. For non-Docker deployments, configure `IMAGE_UPLOAD_DIR` on persistent storage. Gemini is also optional for report submission; when analysis is unavailable, the report is still saved and clearly marked for manual review. Add a Gemini key to enable automatic classification.
 
 ### 2. Start PostgreSQL and the Spring API
 

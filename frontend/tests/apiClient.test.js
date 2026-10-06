@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { apiRequest, getAccessToken, setAccessToken } from "../src/services/api/apiClient";
+import {
+    apiRequest,
+    getAccessToken,
+    resolveApiUrl,
+    setAccessToken,
+} from "../src/services/api/apiClient";
 
 describe("Spring API client", () => {
     afterEach(() => {
@@ -30,5 +35,13 @@ describe("Spring API client", () => {
         ));
 
         await expect(apiRequest("/api/auth/login")).rejects.toThrow("Invalid email or password");
+    });
+
+    it("resolves local image paths against the frontend origin", () => {
+        vi.stubGlobal("window", { location: { origin: "http://localhost:5173" } });
+        expect(resolveApiUrl("/api/images/123.png"))
+            .toBe("http://localhost:5173/api/images/123.png");
+        expect(resolveApiUrl("https://res.cloudinary.com/demo/image.jpg"))
+            .toBe("https://res.cloudinary.com/demo/image.jpg");
     });
 });

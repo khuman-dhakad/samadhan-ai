@@ -28,6 +28,7 @@ dist-ssr
 .env.backend
 **/.env.backend
 **/target
+**/uploads
 
 # Editor directories and files
 .vscode/*

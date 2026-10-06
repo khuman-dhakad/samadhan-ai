@@ -25,11 +25,15 @@ services:
       DATABASE_USERNAME: samadhan
       DATABASE_PASSWORD: samadhan
       CORS_ALLOWED_ORIGINS: http://localhost:5173
+      IMAGE_UPLOAD_DIR: /app/uploads
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - samadhan-uploads:/app/uploads
 
 volumes:
   samadhan-postgres:
+  samadhan-uploads:
