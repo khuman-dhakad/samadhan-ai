@@ -167,6 +167,7 @@ Send authenticated requests with `Authorization: Bearer <token>`. Report and adm
 
 Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env` before the first API startup if the deployment needs an admin account. The API creates that account once; public registration never grants the admin role. Configure a new database or perform a controlled administrative migration before changing the provisioned admin identity.
 
+
 ## Deployment
 
 Deploy the React `dist/` bundle to any static host and deploy the `backend/` Spring Boot container/JAR to a Java-capable host. Provision PostgreSQL separately, configure the backend variables in the host’s secret manager, set `VITE_API_URL` to the API’s HTTPS base URL when building the frontend, and allow the frontend origin in `CORS_ALLOWED_ORIGINS`. Vercel can host the static frontend; the Java API must be deployed as a separate service.
